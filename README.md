@@ -79,7 +79,22 @@ A lightweight, modern desktop web dashboard for monitoring, diagnosing, and mana
 
 ## 🚀 Quick Start (Windows)
 
-### 1. Installation
+### 🖥️ Option A: 1-Click Server Installer (Plex Server / Home Server)
+
+For installing on a Plex media server or any dedicated Windows machine:
+1. Download or copy **`NestWifiProDashboard-Setup.exe`** to your server.
+2. Double-click **`NestWifiProDashboard-Setup.exe`**.
+3. The self-extracting wizard will:
+   * Deploy the files to `%LOCALAPPDATA%\NestWifiProDashboard`
+   * Set up the virtual environment and install all dependencies
+   * Register the silent background service to run 24/7 on boot
+   * Create a Desktop shortcut and open `http://localhost:5000`
+
+> 💡 **Rebuilding the Installer:** Double-click **`build_installer.bat`** (or run `python build_installer.py`) to generate a fresh `NestWifiProDashboard-Setup.exe` at any time.
+
+---
+
+### 💻 Option B: Manual Git Installation
 
 Clone this repository and ensure Python 3.10+ is installed:
 ```powershell
@@ -87,7 +102,6 @@ git clone <YOUR_REPO_URL>
 cd nest-wifi-dashboard
 ```
 
-### 2. Launching the App
 Double-click **`start.bat`** (or run in PowerShell):
 ```powershell
 .\start.bat
@@ -182,27 +196,31 @@ The backend exposes a clean REST API consumed by the dashboard:
 
 ```
 nest-wifi-dashboard/
-├── .env.example          # Environment template
-├── .gitignore            # Ignores .venv, .credentials.enc, settings_store.json, etc.
-├── app.py                # Flask application & multi-threaded async runner
-├── auth_helper.py        # Interactive Google OAuth token exchange wizard
-├── config.py             # Configuration loader with sensible defaults
-├── credentials.py        # Windows DPAPI encrypted token store
-├── service_manager.py    # Background service & autostart manager
-├── README.md             # Project documentation
-├── requirements.txt      # Python dependencies
-├── run.py                # Application entrypoint & CLI service controller
-├── setup_auth.bat        # Windows 1-click authentication wizard
-├── start.bat             # Windows 1-click foreground launcher
-├── start_background.vbs  # Silent windowless background runner
-├── start_background.bat  # Background launcher batch wrapper
-├── stop_background.bat   # Process terminator for port 5000
-├── install_service.bat   # Windows autostart service installer
-├── uninstall_service.bat # Windows autostart service uninstaller
+├── .env.example                # Environment template
+├── .gitignore                  # Ignores .venv, .credentials.enc, settings_store.json, etc.
+├── NestWifiProDashboard-Setup.exe # Self-extracting Windows installer (for Plex/server)
+├── app.py                      # Flask application & multi-threaded async runner
+├── auth_helper.py              # Interactive Google OAuth token exchange wizard
+├── build_installer.py          # Windows SFX compiler using Microsoft IExpress
+├── build_installer.bat         # 1-click batch compiler for the SFX installer
+├── config.py                   # Configuration loader with sensible defaults
+├── credentials.py              # Windows DPAPI encrypted token store
+├── installer.bat               # Automated server deployment script
+├── service_manager.py          # Background service & autostart manager
+├── README.md                   # Project documentation
+├── requirements.txt            # Python dependencies
+├── run.py                      # Application entrypoint & CLI service controller
+├── setup_auth.bat              # Windows 1-click authentication wizard
+├── start.bat                   # Windows 1-click foreground launcher
+├── start_background.vbs        # Silent windowless background runner
+├── start_background.bat        # Background launcher batch wrapper
+├── stop_background.bat         # Process terminator for port 5000
+├── install_service.bat         # Windows autostart service installer
+├── uninstall_service.bat       # Windows autostart service uninstaller
 ├── static/
-│   ├── index.html        # Single-page modern dashboard UI
-│   └── settings.html     # Settings UI (DNS, DHCP, Ports, Wi-Fi, Service, Auth)
-└── wifi_client.py        # Async data adapter for Google Wifi & local endpoints
+│   ├── index.html              # Single-page modern dashboard UI
+│   └── settings.html           # Settings UI (DNS, DHCP, Ports, Wi-Fi, Service, Auth)
+└── wifi_client.py              # Async data adapter for Google Wifi & local endpoints
 ```
 
 ---
