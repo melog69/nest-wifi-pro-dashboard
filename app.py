@@ -86,6 +86,13 @@ def index():
     return send_from_directory(_static_dir, "index.html")
 
 
+@app.route("/settings")
+@app.route("/settings.html")
+def settings_page():
+    """Serve the Settings page."""
+    return send_from_directory(_static_dir, "settings.html")
+
+
 # ===================================================================
 #  API routes
 # ===================================================================
@@ -247,6 +254,80 @@ def api_local_info():
         return jsonify(data), 200 if data.get("ok") else 502
     except Exception as exc:
         logger.exception("GET /api/local-info failed")
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+# ===================================================================
+#  SETTINGS API ROUTES
+# ===================================================================
+
+@app.route("/api/settings")
+def api_get_settings():
+    """Return all dashboard/network settings."""
+    try:
+        data = _run_async(wifi_client.get_settings())
+        return jsonify(data), 200
+    except Exception as exc:
+        logger.exception("GET /api/settings failed")
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+@app.route("/api/settings/<section>", methods=["PUT", "PATCH"])
+def api_update_settings(section: str):
+    """Update a settings section. Body: flat dict of key/value pairs."""
+    body = request.get_json(silent=True) or {}
+    try:
+        data = _run_async(wifi_client.update_settings(section, body))
+        return jsonify(data), 200 if data.get("ok") else 400
+    except Exception as exc:
+        logger.exception("PUT /api/settings/%s failed", section)
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+@app.route("/api/settings/dhcp/reservations", methods=["POST"])
+def api_add_dhcp_reservation():
+    """Add a DHCP IP reservation. Body: {mac, ip, hostname}"""
+    body = request.get_json(silent=True) or {}
+    mac = body.get("mac", "").strip()
+    ip = body.get("ip", "").strip()
+    hostname = body.get("hostname", "").strip()
+    if not mac or not ip:
+        return jsonify({"ok": False, "error": "mac and ip are required"}), 400
+    try:
+        data = _run_async(wifi_client.add_dhcp_reservation(mac, ip, hostname))
+        return jsonify(data), 200
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+@app.route("/api/settings/dhcp/reservations/<mac>", methods=["DELETE"])
+def api_remove_dhcp_reservation(mac: str):
+    """Remove a DHCP IP reservation by MAC address."""
+    try:
+        data = _run_async(wifi_client.remove_dhcp_reservation(mac))
+        return jsonify(data), 200
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+@app.route("/api/settings/ports/rules", methods=["POST"])
+def api_add_port_rule():
+    """Add a port forwarding rule."""
+    body = request.get_json(silent=True) or {}
+    try:
+        data = _run_async(wifi_client.add_port_rule(body))
+        return jsonify(data), 200 if data.get("ok") else 400
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+@app.route("/api/settings/ports/rules/<int:idx>", methods=["DELETE"])
+def api_remove_port_rule(idx: int):
+    """Remove a port forwarding rule by index."""
+    try:
+        data = _run_async(wifi_client.remove_port_rule(idx))
+        return jsonify(data), 200 if data.get("ok") else 400
+    except Exception as exc:
         return jsonify({"ok": False, "error": str(exc)}), 500
 
 

@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — Nest Wifi Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #f8fafd;
+      --bg-card: #ffffff;
+      --bg-subtle: #f1f4f9;
+      --bg-hover: #f1f5fa;
+      --google-blue: #1a73e8;
+      --google-blue-container: #e8f0fe;
+      --google-blue-text: #1967d2;
+      --google-blue-border: #d2e3fc;
+      --google-green: #137333;
+      --google-green-container: #e6f4ea;
+      --google-green-text: #137333;
+      --google-green-border: #ceead6;
+      --google-amber: #b06000;
+      --google-amber-container: #fef7e0;
+      --google-amber-text: #b06000;
+      --google-amber-border: #feefc3;
+      --google-coral: #c5221f;
+      --google-coral-container: #fce8e6;
+      --google-coral-text: #c5221f;
+      --google-coral-border: #fad2cf;
+      --google-coral-hover: #f7c3bf;
+      --google-neutral-container: #f1f3f4;
+      --google-neutral-text: #3c4043;
+      --google-neutral-border: #dadce0;
+      --text-primary: #1f1f1f;
+      --text-secondary: #5f6368;
+      --text-tertiary: #80868b;
+      --border: #e0e3e7;
+      --border-subtle: #edf1f7;
+      --font-stack: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --radius: 20px;
+      --radius-sm: 12px;
+      --radius-pill: 9999px;
+      --gap: 1.25rem;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-sm: 0 1px 2px rgba(60,64,67,0.06), 0 1px 3px rgba(60,64,67,0.04);
+      --shadow-md: 0 2px 6px rgba(60,64,67,0.08), 0 4px 12px rgba(60,64,67,0.05);
+      --shadow-hover: 0 4px 16px rgba(60,64,67,0.1), 0 8px 24px rgba(60,64,67,0.06);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-stack);
+      font-size: 0.875rem;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    code {
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: 0.8rem;
+      background: var(--bg-subtle);
+      color: var(--google-blue-text);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding: 0.9rem 1.75rem;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .header-icon-box {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--google-blue-container);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--google-blue);
+      flex-shrink: 0;
+    }
+
+    .header-left svg { width: 20px; height: 20px; }
+
+    .header-left h1 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 0.85rem;
+      font-family: var(--font-stack);
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all var(--transition);
+    }
+
+    .back-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--google-blue-border);
+    }
+
+    .save-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1.2rem;
+      border: 1px solid var(--google-blue-border);
+      border-radius: var(--radius-pill);
+      background: var(--google-blue-container);
+      color: var(--google-blue-text);
+      font-size: 0.875rem;
+      font-family: var(--font-stack);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .save-btn:hover {
+      background: #d8e6fd;
+      box-shadow: 0 1px 3px rgba(26,115,232,0.2);
+    }
+
+    .save-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    /* Layout */
+    .settings-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 2rem;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 1.75rem 1.5rem;
+    }
+
+    /* Sidebar nav */
+    .settings-nav {
+      position: sticky;
+      top: 72px;
+      align-self: start;
+    }
+
+    .nav-group-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-tertiary);
+      padding: 0.5rem 0.75rem 0.3rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem 0.75rem;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      border: none;
+      background: none;
+      font-family: var(--font-stack);
+      font-size: 0.875rem;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+    .nav-item.active {
+      background: var(--google-blue-container);
+      color: var(--google-blue-text);
+      font-weight: 600;
+    }
+
+    .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    /* Section panels */
+    .settings-content { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .settings-section {
+      display: none;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .settings-section.active { display: flex; }
+
+    .section-heading {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-title svg { width: 18px; height: 18px; color: var(--google-blue); }
+
+    /* Form elements */
+    .form-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .form-row:last-child { border-bottom: none; }
+
+    .form-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      flex: 1;
+    }
+
+    .form-hint {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 0.1rem;
+    }
+
+    .form-label-wrap { display: flex; flex-direction: column; }
+
+    .form-input {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.45rem 0.85rem;
+      font-size: 0.875rem;
+      font-family: var(--font-stack);
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      outline: none;
+      min-width: 180px;
+      transition: all var(--transition);
+    }
+
+    .form-input:focus {
+      border-color: var(--google-blue);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(26,115,232,0.15);
+    }
+
+    .form-input.mono {
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: 0.82rem;
+    }
+
+    select.form-input {
+      cursor: pointer;
+      appearance: auto;
+    }
+
+    /* Toggle switch */
+    .toggle-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    .toggle {
+      position: relative;
+      width: 42px; height: 24px;
+      display: inline-block;
+    }
+
+    .toggle input { opacity: 0; width: 0; height: 0; }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #dadce0;
+      border-radius: 9999px;
+      transition: background var(--transition);
+      cursor: pointer;
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      left: 3px; top: 3px;
+      width: 18px; height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      transition: transform var(--transition);
+    }
+
+    .toggle input:checked + .toggle-slider { background: var(--google-blue); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 0.84rem;
+      font-family: var(--font-stack);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .btn:hover { background: var(--bg-hover); }
+
+    .btn-primary {
+      background: var(--google-blue-container);
+      color: var(--google-blue-text);
+      border-color: var(--google-blue-border);
+      font-weight: 600;
+    }
+
+    .btn-primary:hover { background: #d8e6fd; }
+
+    .btn-danger {
+      background: var(--google-coral-container);
+      color: var(--google-coral-text);
+      border-color: var(--google-coral-border);
+      font-weight: 600;
+    }
+
+    .btn-danger:hover { background: var(--google-coral-hover); }
+
+    .btn-sm { padding: 0.3rem 0.75rem; font-size: 0.8rem; }
+
+    /* Status chips */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .chip-blue { background: var(--google-blue-container); color: var(--google-blue-text); border: 1px solid var(--google-blue-border); }
+    .chip-green { background: var(--google-green-container); color: var(--google-green-text); border: 1px solid var(--google-green-border); }
+    .chip-amber { background: var(--google-amber-container); color: var(--google-amber-text); border: 1px solid var(--google-amber-border); }
+    .chip-coral { background: var(--google-coral-container); color: var(--google-coral-text); border: 1px solid var(--google-coral-border); }
+    .chip-neutral { background: var(--google-neutral-container); color: var(--google-neutral-text); border: 1px solid var(--google-neutral-border); }
+
+    /* Tables */
+    .data-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fff;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 500px;
+    }
+
+    .data-table thead th {
+      background: #f8f9fa;
+      padding: 0.6rem 0.85rem;
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-table tbody td {
+      padding: 0.65rem 0.85rem;
+      font-size: 0.84rem;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: middle;
+    }
+
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover { background: #f8fafd; }
+
+    /* Add form inline */
+    .add-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: flex-end;
+      padding: 1rem;
+      background: var(--bg-primary);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      margin-top: 0.75rem;
+    }
+
+    .add-form .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+      min-width: 130px;
+    }
+
+    .add-form label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 1.5rem; right: 1.5rem;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 0.5rem;
+      pointer-events: none;
+    }
+
+    .toast {
+      padding: 0.85rem 1.15rem;
+      border-radius: var(--radius-sm);
+      background: #fff;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(60,64,67,0.14);
+      font-size: 0.875rem;
+      pointer-events: auto;
+      animation: slideIn 0.3s ease forwards;
+      max-width: 360px;
+    }
+
+    .toast.success { border-left: 4px solid var(--google-green); }
+    .toast.error   { border-left: 4px solid var(--google-coral); }
+    .toast.info    { border-left: 4px solid var(--google-blue); }
+
+    @keyframes slideIn { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes slideOut { from { opacity: 1; } to { opacity: 0; transform: translateX(50px); } }
+    .toast.removing { animation: slideOut 0.25s ease forwards; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .settings-layout { grid-template-columns: 1fr; }
+      .settings-nav { position: static; display: flex; gap: 0.5rem; flex-wrap: wrap; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+      .nav-group-label { display: none; }
+      .nav-item { flex: 0 0 auto; border-radius: var(--radius-pill); padding: 0.4rem 0.9rem; }
+    }
+
+    .info-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      padding: 0.75rem 1rem;
+      background: var(--google-blue-container);
+      border: 1px solid var(--google-blue-border);
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      color: var(--google-blue-text);
+    }
+
+    .info-banner svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 0.1rem; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header" role="banner">
+    <div class="header-left">
+      <div class="header-icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </div>
+      <h1>Advanced Settings</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.75rem">
+      <a href="/" class="back-btn" aria-label="Back to dashboard">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Dashboard
+      </a>
+      <button class="save-btn" id="globalSaveBtn" onclick="saveCurrentSection()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2l11 0 5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save Changes
+      </button>
+    </div>
+  </header>
+
+  <div class="settings-layout">
+
+    <!-- SIDEBAR NAV -->
+    <nav class="settings-nav" aria-label="Settings navigation">
+      <div class="nav-group-label">Network</div>
+      <button class="nav-item active" data-section="dns" onclick="showSection('dns', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        DNS Settings
+      </button>
+      <button class="nav-item" data-section="dhcp" onclick="showSection('dhcp', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        DHCP &amp; Reservations
+      </button>
+      <button class="nav-item" data-section="ports" onclick="showSection('ports', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Port Forwarding
+      </button>
+      <div class="nav-group-label" style="margin-top:0.75rem">Wi-Fi</div>
+      <button class="nav-item" data-section="wifi" onclick="showSection('wifi', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+        Wi-Fi Settings
+      </button>
+      <div class="nav-group-label" style="margin-top:0.75rem">System</div>
+      <button class="nav-item" data-section="security" onclick="showSection('security', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Security &amp; Firewall
+      </button>
+      <button class="nav-item" data-section="advanced" onclick="showSection('advanced', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Advanced
+      </button>
+    </nav>
+
+    <!-- CONTENT -->
+    <div class="settings-content">
+
+      <!-- ===================== DNS ===================== -->
+      <section class="settings-section active" id="section-dns">
+        <div class="section-heading">DNS Settings</div>
+
+        <div class="info-banner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          DNS changes are saved to this dashboard session. For permanent changes, apply them in the Google Home app under <strong>Wi-Fi → Settings → Advanced networking</strong>.
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            DNS Configuration
+          </div>
+
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">DNS Mode</span>
+              <span class="form-hint">Auto uses ISP-provided DNS; Custom allows manual servers</span>
+            </div>
+            <select class="form-input" id="dns_mode">
+              <option value="auto">Automatic (ISP)</option>
+              <option value="custom" selected>Custom</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Primary DNS</span>
+              <span class="form-hint">e.g. 9.9.9.9 (Quad9), 1.1.1.1 (Cloudflare), 8.8.8.8 (Google)</span>
+            </div>
+            <input class="form-input mono" id="dns_primary" type="text" placeholder="9.9.9.9" value="9.9.9.9">
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Secondary DNS</span>
+              <span class="form-hint">Fallback DNS server</span>
+            </div>
+            <input class="form-input mono" id="dns_secondary" type="text" placeholder="1.1.1.1" value="1.1.1.1">
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="margin-bottom:0.5rem">Popular DNS Presets</div>
+          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem">
+            <button class="btn btn-sm" onclick="applyDNSPreset('9.9.9.9','149.112.112.112','Quad9')">Quad9 (Privacy)</button>
+            <button class="btn btn-sm" onclick="applyDNSPreset('1.1.1.1','1.0.0.1','Cloudflare')">Cloudflare (Fast)</button>
+            <button class="btn btn-sm" onclick="applyDNSPreset('8.8.8.8','8.8.4.4','Google')">Google Public DNS</button>
+            <button class="btn btn-sm" onclick="applyDNSPreset('208.67.222.222','208.67.220.220','OpenDNS')">OpenDNS (Family)</button>
+            <button class="btn btn-sm" onclick="applyDNSPreset('76.76.2.0','76.76.10.0','ControlD')">ControlD</button>
+            <button class="btn btn-sm" onclick="applyDNSPreset('94.140.14.14','94.140.15.15','AdGuard')">AdGuard DNS</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== DHCP ===================== -->
+      <section class="settings-section" id="section-dhcp">
+        <div class="section-heading">DHCP &amp; IP Reservations</div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            DHCP Server Settings
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">DHCP Enabled</span>
+              <span class="form-hint">Assign IP addresses automatically to connected devices</span>
+            </div>
+            <label class="toggle-wrap">
+              <span class="toggle">
+                <input type="checkbox" id="dhcp_enabled" checked>
+                <span class="toggle-slider"></span>
+              </span>
+            </label>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">DHCP Start IP</span>
+              <span class="form-hint">First address in the DHCP pool</span>
+            </div>
+            <input class="form-input mono" id="dhcp_start" type="text" placeholder="192.168.1.100" value="192.168.1.100">
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">DHCP End IP</span>
+              <span class="form-hint">Last address in the DHCP pool</span>
+            </div>
+            <input class="form-input mono" id="dhcp_end" type="text" placeholder="192.168.1.200" value="192.168.1.200">
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Lease Time</span>
+              <span class="form-hint">How long an IP address is assigned to a device</span>
+            </div>
+            <select class="form-input" id="dhcp_lease">
+              <option value="1">1 hour</option>
+              <option value="8">8 hours</option>
+              <option value="24" selected>24 hours</option>
+              <option value="48">48 hours</option>
+              <option value="168">1 week</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            IP Reservations
+            <span class="chip chip-neutral" id="reservationCount" style="margin-left:auto">0 reservations</span>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Device / Hostname</th>
+                  <th>MAC Address</th>
+                  <th>Reserved IP</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="reservationsBody">
+                <tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:1.5rem">No IP reservations configured</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="add-form" id="addReservationForm">
+            <div class="field-group">
+              <label>Hostname</label>
+              <input class="form-input" id="res_hostname" type="text" placeholder="my-device">
+            </div>
+            <div class="field-group">
+              <label>MAC Address</label>
+              <input class="form-input mono" id="res_mac" type="text" placeholder="AA:BB:CC:DD:EE:FF">
+            </div>
+            <div class="field-group">
+              <label>Reserved IP</label>
+              <input class="form-input mono" id="res_ip" type="text" placeholder="192.168.1.50">
+            </div>
+            <button class="btn btn-primary" onclick="addReservation()" style="align-self:flex-end;white-space:nowrap">
+              + Add Reservation
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== PORTS ===================== -->
+      <section class="settings-section" id="section-ports">
+        <div class="section-heading">Port Forwarding</div>
+
+        <div class="info-banner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Port forwarding rules allow external internet traffic to reach a specific device on your local network. Use with caution — only open ports you need.
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Port Forwarding Rules
+            <span class="chip chip-neutral" id="portRuleCount" style="margin-left:auto">0 rules</span>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Protocol</th>
+                  <th>External Port</th>
+                  <th>Internal IP</th>
+                  <th>Internal Port</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="portRulesBody">
+                <tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:1.5rem">No port forwarding rules configured</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="add-form">
+            <div class="field-group">
+              <label>Name</label>
+              <input class="form-input" id="port_name" type="text" placeholder="Web Server">
+            </div>
+            <div class="field-group" style="max-width:110px">
+              <label>Protocol</label>
+              <select class="form-input" id="port_proto">
+                <option>TCP</option>
+                <option>UDP</option>
+                <option>TCP/UDP</option>
+              </select>
+            </div>
+            <div class="field-group" style="max-width:120px">
+              <label>External Port</label>
+              <input class="form-input mono" id="port_ext" type="text" placeholder="8080">
+            </div>
+            <div class="field-group">
+              <label>Internal IP</label>
+              <input class="form-input mono" id="port_ip" type="text" placeholder="192.168.1.50">
+            </div>
+            <div class="field-group" style="max-width:120px">
+              <label>Internal Port</label>
+              <input class="form-input mono" id="port_int" type="text" placeholder="80">
+            </div>
+            <button class="btn btn-primary" onclick="addPortRule()" style="align-self:flex-end;white-space:nowrap">
+              + Add Rule
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Common Port Quick-Add</div>
+          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem">
+            <button class="btn btn-sm" onclick="quickPort('HTTP Web Server','TCP','80','192.168.1.50','80')">HTTP (80)</button>
+            <button class="btn btn-sm" onclick="quickPort('HTTPS Web Server','TCP','443','192.168.1.50','443')">HTTPS (443)</button>
+            <button class="btn btn-sm" onclick="quickPort('SSH Remote Access','TCP','22','192.168.1.50','22')">SSH (22)</button>
+            <button class="btn btn-sm" onclick="quickPort('Plex Media Server','TCP','32400','192.168.1.50','32400')">Plex (32400)</button>
+            <button class="btn btn-sm" onclick="quickPort('Minecraft','TCP','25565','192.168.1.50','25565')">Minecraft (25565)</button>
+            <button class="btn btn-sm" onclick="quickPort('Wireguard VPN','UDP','51820','192.168.1.50','51820')">WireGuard (51820)</button>
+            <button class="btn btn-sm" onclick="quickPort('RDP Remote Desktop','TCP','3389','192.168.1.50','3389')">RDP (3389)</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== WIFI ===================== -->
+      <section class="settings-section" id="section-wifi">
+        <div class="section-heading">Wi-Fi Settings</div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+            Network Identity
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Network Name (SSID)</span>
+              <span class="form-hint">Your Wi-Fi network name visible to devices</span>
+            </div>
+            <input class="form-input" id="wifi_ssid" type="text" placeholder="ThomassaurusRex" value="ThomassaurusRex">
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Band &amp; Channel Settings</div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Band Steering</span>
+              <span class="form-hint">Automatically move devices to the best available band (2.4 / 5 / 6 GHz)</span>
+            </div>
+            <label class="toggle-wrap">
+              <span class="toggle">
+                <input type="checkbox" id="wifi_band_steering" checked>
+                <span class="toggle-slider"></span>
+              </span>
+            </label>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">6 GHz Channel Width</span>
+              <span class="form-hint">Wider channels = higher speeds but more interference</span>
+            </div>
+            <select class="form-input" id="wifi_cw_6g">
+              <option value="80" selected>80 MHz</option>
+              <option value="160">160 MHz</option>
+              <option value="320">320 MHz</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">5 GHz Channel Width</span>
+            </div>
+            <select class="form-input" id="wifi_cw_5g">
+              <option value="40">40 MHz</option>
+              <option value="80" selected>80 MHz</option>
+              <option value="160">160 MHz</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">2.4 GHz Channel Width</span>
+            </div>
+            <select class="form-input" id="wifi_cw_2g">
+              <option value="20" selected>20 MHz</option>
+              <option value="40">40 MHz</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Transmit Power</span>
+              <span class="form-hint">Auto adjusts for mesh backhaul efficiency</span>
+            </div>
+            <select class="form-input" id="wifi_tx_power">
+              <option value="auto" selected>Auto</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== SECURITY ===================== -->
+      <section class="settings-section" id="section-security">
+        <div class="section-heading">Security &amp; Firewall</div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Firewall &amp; Access Control
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Firewall</span>
+              <span class="form-hint">Block unsolicited inbound traffic from the internet</span>
+            </div>
+            <label class="toggle-wrap">
+              <span class="toggle"><input type="checkbox" id="sec_firewall" checked><span class="toggle-slider"></span></span>
+            </label>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">WPA3 Security</span>
+              <span class="form-hint">Enhanced Wi-Fi encryption (backward-compatible)</span>
+            </div>
+            <label class="toggle-wrap">
+              <span class="toggle"><input type="checkbox" id="sec_wpa3" checked><span class="toggle-slider"></span></span>
+            </label>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">NAT</span>
+              <span class="form-hint">Network Address Translation — required for home internet sharing</span>
+            </div>
+            <label class="toggle-wrap">
+              <span class="toggle"><input type="checkbox" id="sec_nat" checked><span class="toggle-slider"></span></span>
+            </label>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">UPnP</span>
+              <span class="form-hint">Allow apps/games to automatically open ports (security risk)</span>
+            </div>
+            <label class="toggle-wrap">
+              <span class="toggle"><input type="checkbox" id="sec_upnp"><span class="toggle-slider"></span></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">DMZ (Demilitarized Zone)</div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Enable DMZ</span>
+              <span class="form-hint">Expose one device to the internet with no firewall protection</span>
+            </div>
+            <label class="toggle-wrap">
+              <span class="toggle"><input type="checkbox" id="sec_dmz" onchange="document.getElementById('dmz_ip_row').style.display=this.checked?'flex':'none'"><span class="toggle-slider"></span></span>
+            </label>
+          </div>
+          <div class="form-row" id="dmz_ip_row" style="display:none">
+            <div class="form-label-wrap">
+              <span class="form-label">DMZ Host IP</span>
+              <span class="form-hint">Local IP of the device to expose</span>
+            </div>
+            <input class="form-input mono" id="sec_dmz_ip" type="text" placeholder="192.168.1.50">
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== ADVANCED ===================== -->
+      <section class="settings-section" id="section-advanced">
+        <div class="section-heading">Advanced Settings</div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Network Optimization
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">QoS (Quality of Service)</span>
+              <span class="form-hint">Prioritize latency-sensitive traffic like video calls and gaming</span>
+            </div>
+            <label class="toggle-wrap">
+              <span class="toggle"><input type="checkbox" id="adv_qos" checked><span class="toggle-slider"></span></span>
+            </label>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Beamforming</span>
+              <span class="form-hint">Focus Wi-Fi signal toward connected devices</span>
+            </div>
+            <label class="toggle-wrap">
+              <span class="toggle"><input type="checkbox" id="adv_beamforming" checked><span class="toggle-slider"></span></span>
+            </label>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">MU-MIMO</span>
+              <span class="form-hint">Serve multiple devices simultaneously on 5/6 GHz</span>
+            </div>
+            <label class="toggle-wrap">
+              <span class="toggle"><input type="checkbox" id="adv_mumimo" checked><span class="toggle-slider"></span></span>
+            </label>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">802.11r Fast Roaming</span>
+              <span class="form-hint">Seamless handoff between mesh nodes (reduces roaming latency)</span>
+            </div>
+            <label class="toggle-wrap">
+              <span class="toggle"><input type="checkbox" id="adv_fast_roaming" checked><span class="toggle-slider"></span></span>
+            </label>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">IPv6</span>
+              <span class="form-hint">Enable IPv6 support (requires ISP support)</span>
+            </div>
+            <label class="toggle-wrap">
+              <span class="toggle"><input type="checkbox" id="adv_ipv6"><span class="toggle-slider"></span></span>
+            </label>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">MTU Size</span>
+              <span class="form-hint">Maximum Transmission Unit in bytes (default: 1500)</span>
+            </div>
+            <input class="form-input mono" id="adv_mtu" type="number" min="576" max="9000" value="1500" style="max-width:120px">
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /settings-content -->
+  </div><!-- /settings-layout -->
+
+  <!-- Toast -->
+  <div class="toast-container" id="toastContainer" aria-live="assertive"></div>
+
+  <script>
+    const API = '';
+    let settings = {};
+    let currentSection = 'dns';
+
+    // ========== NAV ==========
+    function showSection(section, btn) {
+      document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      document.getElementById('section-' + section).classList.add('active');
+      btn.classList.add('active');
+      currentSection = section;
+    }
+
+    // ========== TOAST ==========
+    function showToast(msg, type = 'info', duration = 4000) {
+      const c = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = 'toast ' + type;
+      t.textContent = msg;
+      c.appendChild(t);
+      setTimeout(() => {
+        t.classList.add('removing');
+        t.addEventListener('animationend', () => t.remove());
+      }, duration);
+    }
+
+    // ========== LOAD SETTINGS ==========
+    async function loadSettings() {
+      try {
+        const res = await fetch(`${API}/api/settings`);
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        settings = data.settings || {};
+        applySettingsToUI(settings);
+      } catch (err) {
+        showToast('Could not load settings: ' + err.message, 'error');
+      }
+    }
+
+    function applySettingsToUI(s) {
+      // DNS
+      if (s.dns) {
+        setVal('dns_primary', s.dns.primary || '9.9.9.9');
+        setVal('dns_secondary', s.dns.secondary || '1.1.1.1');
+        setVal('dns_mode', s.dns.mode || 'custom');
+      }
+      // DHCP
+      if (s.dhcp) {
+        setChecked('dhcp_enabled', s.dhcp.enabled !== false);
+        setVal('dhcp_start', s.dhcp.start_ip || '192.168.1.100');
+        setVal('dhcp_end', s.dhcp.end_ip || '192.168.1.200');
+        setVal('dhcp_lease', String(s.dhcp.lease_time_hours || 24));
+        renderReservations(s.dhcp.reservations || []);
+      }
+      // Ports
+      if (s.ports) {
+        renderPortRules(s.ports.rules || []);
+      }
+      // Wi-Fi
+      if (s.wifi) {
+        setVal('wifi_ssid', s.wifi.ssid || '');
+        setChecked('wifi_band_steering', s.wifi.band_steering !== false);
+        setVal('wifi_cw_6g', String(s.wifi.channel_width_6g || '80'));
+        setVal('wifi_cw_5g', String(s.wifi.channel_width_5g || '80'));
+        setVal('wifi_cw_2g', String(s.wifi.channel_width_2g || '20'));
+        setVal('wifi_tx_power', s.wifi.tx_power || 'auto');
+      }
+      // Security
+      if (s.security) {
+        setChecked('sec_firewall', s.security.firewall_enabled !== false);
+        setChecked('sec_wpa3', s.security.wpa3_enabled !== false);
+        setChecked('sec_nat', s.security.nat_enabled !== false);
+        setChecked('sec_upnp', s.security.upnp_enabled === true);
+        setChecked('sec_dmz', s.security.dmz_enabled === true);
+        setVal('sec_dmz_ip', s.security.dmz_ip || '');
+        document.getElementById('dmz_ip_row').style.display = s.security.dmz_enabled ? 'flex' : 'none';
+      }
+      // Advanced
+      if (s.advanced) {
+        setChecked('adv_qos', s.advanced.qos_enabled !== false);
+        setChecked('adv_beamforming', s.advanced.beamforming !== false);
+        setChecked('adv_mumimo', s.advanced.mu_mimo !== false);
+        setChecked('adv_fast_roaming', s.advanced.fast_roaming !== false);
+        setChecked('adv_ipv6', s.advanced.ipv6_enabled === true);
+        setVal('adv_mtu', String(s.advanced.mtu || 1500));
+      }
+    }
+
+    function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
+    function setChecked(id, v) { const el = document.getElementById(id); if (el) el.checked = v; }
+    function getVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+    function getChecked(id) { const el = document.getElementById(id); return el ? el.checked : false; }
+
+    // ========== SAVE ==========
+    async function saveCurrentSection() {
+      const btn = document.getElementById('globalSaveBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+
+      let section = currentSection;
+      let payload = {};
+
+      if (section === 'dns') {
+        payload = { primary: getVal('dns_primary'), secondary: getVal('dns_secondary'), mode: getVal('dns_mode') };
+      } else if (section === 'dhcp') {
+        payload = { enabled: getChecked('dhcp_enabled'), start_ip: getVal('dhcp_start'), end_ip: getVal('dhcp_end'), lease_time_hours: parseInt(getVal('dhcp_lease')) };
+      } else if (section === 'wifi') {
+        payload = { ssid: getVal('wifi_ssid'), band_steering: getChecked('wifi_band_steering'), channel_width_6g: getVal('wifi_cw_6g'), channel_width_5g: getVal('wifi_cw_5g'), channel_width_2g: getVal('wifi_cw_2g'), tx_power: getVal('wifi_tx_power') };
+      } else if (section === 'security') {
+        payload = { firewall_enabled: getChecked('sec_firewall'), wpa3_enabled: getChecked('sec_wpa3'), nat_enabled: getChecked('sec_nat'), upnp_enabled: getChecked('sec_upnp'), dmz_enabled: getChecked('sec_dmz'), dmz_ip: getVal('sec_dmz_ip') };
+      } else if (section === 'advanced') {
+        payload = { qos_enabled: getChecked('adv_qos'), beamforming: getChecked('adv_beamforming'), mu_mimo: getChecked('adv_mumimo'), fast_roaming: getChecked('adv_fast_roaming'), ipv6_enabled: getChecked('adv_ipv6'), mtu: parseInt(getVal('adv_mtu')) };
+      } else if (section === 'ports') {
+        showToast('Use + Add Rule / Delete buttons to manage port rules', 'info');
+        btn.disabled = false; btn.innerHTML = saveIcon() + ' Save Changes';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API}/api/settings/${section}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || 'Failed');
+        showToast(`${capitalize(section)} settings saved!`, 'success');
+      } catch (err) {
+        showToast('Save failed: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = saveIcon() + ' Save Changes';
+      }
+    }
+
+    function saveIcon() {
+      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2l11 0 5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+    }
+
+    function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+    // ========== DNS PRESETS ==========
+    function applyDNSPreset(primary, secondary, name) {
+      setVal('dns_primary', primary);
+      setVal('dns_secondary', secondary);
+      setVal('dns_mode', 'custom');
+      showToast(`${name} DNS preset applied — click Save Changes to confirm`, 'info');
+    }
+
+    // ========== DHCP RESERVATIONS ==========
+    function renderReservations(list) {
+      const tbody = document.getElementById('reservationsBody');
+      const countEl = document.getElementById('reservationCount');
+      countEl.textContent = `${list.length} reservation${list.length !== 1 ? 's' : ''}`;
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:1.5rem">No IP reservations configured</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map((r, i) => `
+        <tr>
+          <td><strong>${escHTML(r.hostname || '—')}</strong></td>
+          <td><code>${escHTML(r.mac)}</code></td>
+          <td><code>${escHTML(r.ip)}</code></td>
+          <td><span class="chip ${r.enabled !== false ? 'chip-green' : 'chip-neutral'}">${r.enabled !== false ? 'Active' : 'Disabled'}</span></td>
+          <td><button class="btn btn-danger btn-sm" onclick="removeReservation('${escHTML(r.mac)}')">Remove</button></td>
+        </tr>
+      `).join('');
+    }
+
+    async function addReservation() {
+      const mac = getVal('res_mac').trim();
+      const ip = getVal('res_ip').trim();
+      const hostname = getVal('res_hostname').trim();
+      if (!mac || !ip) { showToast('MAC address and IP are required', 'error'); return; }
+      try {
+        const res = await fetch(`${API}/api/settings/dhcp/reservations`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mac, ip, hostname })
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        renderReservations(data.reservations || []);
+        setVal('res_mac', ''); setVal('res_ip', ''); setVal('res_hostname', '');
+        showToast('IP reservation added', 'success');
+      } catch (err) {
+        showToast('Failed: ' + err.message, 'error');
+      }
+    }
+
+    async function removeReservation(mac) {
+      try {
+        const res = await fetch(`${API}/api/settings/dhcp/reservations/${encodeURIComponent(mac)}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        renderReservations(data.reservations || []);
+        showToast('Reservation removed', 'success');
+      } catch (err) {
+        showToast('Failed: ' + err.message, 'error');
+      }
+    }
+
+    // ========== PORT RULES ==========
+    function renderPortRules(list) {
+      const tbody = document.getElementById('portRulesBody');
+      const countEl = document.getElementById('portRuleCount');
+      countEl.textContent = `${list.length} rule${list.length !== 1 ? 's' : ''}`;
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:1.5rem">No port forwarding rules configured</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map((r, i) => `
+        <tr>
+          <td><strong>${escHTML(r.name)}</strong></td>
+          <td><span class="chip chip-blue">${escHTML(r.protocol)}</span></td>
+          <td><code>${escHTML(String(r.external_port))}</code></td>
+          <td><code>${escHTML(r.internal_ip)}</code></td>
+          <td><code>${escHTML(String(r.internal_port))}</code></td>
+          <td><span class="chip ${r.enabled !== false ? 'chip-green' : 'chip-neutral'}">${r.enabled !== false ? 'Enabled' : 'Disabled'}</span></td>
+          <td><button class="btn btn-danger btn-sm" onclick="removePortRule(${i})">Delete</button></td>
+        </tr>
+      `).join('');
+    }
+
+    async function addPortRule() {
+      const rule = {
+        name: getVal('port_name').trim(),
+        protocol: getVal('port_proto'),
+        external_port: parseInt(getVal('port_ext')),
+        internal_ip: getVal('port_ip').trim(),
+        internal_port: parseInt(getVal('port_int')),
+        enabled: true
+      };
+      if (!rule.name || !rule.external_port || !rule.internal_ip || !rule.internal_port) {
+        showToast('All fields are required', 'error'); return;
+      }
+      try {
+        const res = await fetch(`${API}/api/settings/ports/rules`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(rule)
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        renderPortRules(data.rules || []);
+        ['port_name','port_ext','port_ip','port_int'].forEach(id => setVal(id, ''));
+        showToast('Port rule added', 'success');
+      } catch (err) {
+        showToast('Failed: ' + err.message, 'error');
+      }
+    }
+
+    function quickPort(name, proto, extPort, intIp, intPort) {
+      setVal('port_name', name); setVal('port_proto', proto);
+      setVal('port_ext', extPort); setVal('port_ip', intIp); setVal('port_int', intPort);
+      showSection('ports', document.querySelector('[data-section="ports"]'));
+      showToast(`Quick-fill applied for "${name}" — verify the internal IP and click Add Rule`, 'info');
+    }
+
+    async function removePortRule(idx) {
+      try {
+        const res = await fetch(`${API}/api/settings/ports/rules/${idx}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        renderPortRules(data.rules || []);
+        showToast('Port rule deleted', 'success');
+      } catch (err) {
+        showToast('Failed: ' + err.message, 'error');
+      }
+    }
+
+    function escHTML(str) {
+      if (!str) return '';
+      const el = document.createElement('span');
+      el.textContent = String(str);
+      return el.innerHTML;
+    }
+
+    // Load on startup
+    loadSettings();
+  </script>
+</body>
+</html>

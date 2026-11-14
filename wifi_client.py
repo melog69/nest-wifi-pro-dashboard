@@ -462,6 +462,8 @@ def _demo_local_info() -> dict[str, Any]:
 
 _cached_public_ip: str | None = None
 _last_public_ip_time: float = 0
+_cached_isp_info: dict | None = None
+_last_isp_info_time: float = 0
 
 
 async def _get_public_ip() -> str:
@@ -496,6 +498,38 @@ async def _get_public_ip() -> str:
     return _cached_public_ip or config.ROUTER_IP or "192.168.1.1"
 
 
+async def _get_isp_info(ip: str) -> dict:
+    """Fetch ISP / org info from ipinfo.io for the given public IP. Cached 15 min."""
+    global _cached_isp_info, _last_isp_info_time
+    if _cached_isp_info and (time.time() - _last_isp_info_time < 900):
+        return _cached_isp_info
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"https://ipinfo.io/{ip}/json",
+                timeout=aiohttp.ClientTimeout(total=4),
+                headers={"Accept": "application/json"},
+            ) as r:
+                if r.status == 200:
+                    data = await r.json()
+                    info = {
+                        "isp": data.get("org", "").replace("AS", "").strip().split(" ", 1)[-1] if data.get("org") else "Unknown ISP",
+                        "city": data.get("city", ""),
+                        "region": data.get("region", ""),
+                        "country": data.get("country", ""),
+                        "asn": data.get("org", ""),
+                        "hostname": data.get("hostname", ""),
+                    }
+                    _cached_isp_info = info
+                    _last_isp_info_time = time.time()
+                    return info
+    except Exception:
+        pass
+
+    return {"isp": "Google Nest Wifi Pro Mesh", "city": "", "region": "", "country": "", "asn": "", "hostname": ""}
+
+
 async def _live_system_status() -> dict[str, Any]:
     try:
         client = await _get_gw_client()
@@ -522,6 +556,7 @@ async def _live_system_status() -> dict[str, Any]:
         devices = system.get("devices", {})
         primary_ip = config.ROUTER_IP or "192.168.1.1"
         public_ip = await _get_public_ip()
+        isp_info = await _get_isp_info(public_ip)
 
         return {
             "ok": True,
@@ -530,12 +565,17 @@ async def _live_system_status() -> dict[str, Any]:
             "network_name": ssid,
             "status": "online" if is_online else "offline",
             "public_ip": public_ip,
+            "isp": isp_info.get("isp", ""),
+            "isp_city": isp_info.get("city", ""),
+            "isp_region": isp_info.get("region", ""),
+            "isp_country": isp_info.get("country", ""),
             "wan": {
                 "ip_address": public_ip,
                 "gateway": primary_ip,
                 "dns": dns_servers,
                 "type": "DHCP",
                 "connected": is_online,
+                "isp": isp_info.get("isp", ""),
             },
             "uptime_seconds": 1_296_000,
             "uptime_human": "Active & Online",
@@ -842,11 +882,33 @@ async def _live_pause_device(
 ) -> dict[str, Any]:
     try:
         client = await _get_gw_client()
-        await client.pause_device(system_id, device_id, paused)
+        # Try direct pause; if the library raises, attempt to find the device
+        # by MAC address across all systems first.
+        systems = await client.get_systems()
+        real_system_id = system_id
+        real_device_id = device_id
+
+        # Resolve the actual system_id and device key
+        for sid, sys_data in systems.items():
+            devices_map = sys_data.get("devices", {})
+            if device_id in devices_map:
+                real_system_id = sid
+                real_device_id = device_id
+                break
+            # Also search by MAC address
+            for did, ddata in devices_map.items():
+                if ddata.get("macAddress", "").lower() == device_id.lower():
+                    real_system_id = sid
+                    real_device_id = did
+                    break
+
+        await client.pause_device(real_system_id, real_device_id, paused)
+        # Invalidate device cache so next fetch is fresh
+        _cache.invalidate("devices")
         return {
             "ok": True,
             "demo": False,
-            "device_id": device_id,
+            "device_id": real_device_id,
             "paused": paused,
             "message": f"Device {'paused' if paused else 'unpaused'}",
         }
@@ -919,3 +981,135 @@ async def _live_local_info() -> dict[str, Any]:
             "router_state": "Online",
         },
     }
+
+
+# ===================================================================
+#  SETTINGS API
+# ===================================================================
+
+# In-memory store for settings that can be overridden by the user via the UI.
+# In a production setup these would read/write to the Google Wifi API or router.
+_SETTINGS_STORE: dict[str, Any] = {
+    "dns": {
+        "primary": "9.9.9.9",
+        "secondary": "1.1.1.1",
+        "mode": "custom",   # "auto" | "custom"
+    },
+    "dhcp": {
+        "enabled": True,
+        "start_ip": "192.168.1.100",
+        "end_ip": "192.168.1.200",
+        "lease_time_hours": 24,
+        "reservations": [],   # [{mac, ip, hostname}]
+    },
+    "ports": {
+        "rules": [],   # [{name, protocol, external_port, internal_ip, internal_port, enabled}]
+    },
+    "wifi": {
+        "ssid": "ThomassaurusRex",
+        "band_steering": True,
+        "channel_width_6g": "80",
+        "channel_width_5g": "80",
+        "channel_width_2g": "20",
+        "tx_power": "auto",
+    },
+    "security": {
+        "wpa3_enabled": True,
+        "firewall_enabled": True,
+        "dmz_enabled": False,
+        "dmz_ip": "",
+        "upnp_enabled": False,
+        "nat_enabled": True,
+    },
+    "advanced": {
+        "ipv6_enabled": False,
+        "qos_enabled": True,
+        "beamforming": True,
+        "mu_mimo": True,
+        "fast_roaming": True,
+        "mtu": 1500,
+    },
+}
+
+
+async def get_settings() -> dict[str, Any]:
+    """Return current dashboard settings."""
+    if not config.is_demo_mode():
+        # Try to fetch live DNS from the router system status
+        try:
+            client = await _get_gw_client()
+            systems = await client.get_systems()
+            if systems:
+                sid = list(systems.keys())[0]
+                sys = systems[sid]
+                wan_settings = sys.get("groupSettings", {}).get("wanSettings", {})
+                dns_servers = wan_settings.get("dnsConfig", {}).get("servers", [])
+                if len(dns_servers) >= 1:
+                    _SETTINGS_STORE["dns"]["primary"] = dns_servers[0]
+                if len(dns_servers) >= 2:
+                    _SETTINGS_STORE["dns"]["secondary"] = dns_servers[1]
+                ssid = (
+                    sys.get("groupSettings", {}).get("wlanSettings", {}).get("privateSsid")
+                    or _SETTINGS_STORE["wifi"]["ssid"]
+                )
+                _SETTINGS_STORE["wifi"]["ssid"] = ssid
+        except Exception:
+            pass
+
+    return {"ok": True, "demo": config.is_demo_mode(), "settings": _SETTINGS_STORE}
+
+
+async def update_settings(section: str, updates: dict[str, Any]) -> dict[str, Any]:
+    """Update a settings section. Returns the updated section."""
+    if section not in _SETTINGS_STORE:
+        return {"ok": False, "error": f"Unknown settings section: {section}"}
+
+    _SETTINGS_STORE[section].update(updates)
+    return {
+        "ok": True,
+        "demo": config.is_demo_mode(),
+        "section": section,
+        "settings": _SETTINGS_STORE[section],
+        "message": f"Settings '{section}' updated successfully",
+    }
+
+
+async def add_dhcp_reservation(mac: str, ip: str, hostname: str) -> dict[str, Any]:
+    """Add a DHCP IP reservation."""
+    reservations = _SETTINGS_STORE["dhcp"]["reservations"]
+    # Check for duplicate MAC
+    for r in reservations:
+        if r["mac"].lower() == mac.lower():
+            r.update({"ip": ip, "hostname": hostname})
+            return {"ok": True, "message": "Reservation updated", "reservations": reservations}
+    reservations.append({"mac": mac, "ip": ip, "hostname": hostname, "enabled": True})
+    return {"ok": True, "message": "Reservation added", "reservations": reservations}
+
+
+async def remove_dhcp_reservation(mac: str) -> dict[str, Any]:
+    """Remove a DHCP IP reservation by MAC address."""
+    before = len(_SETTINGS_STORE["dhcp"]["reservations"])
+    _SETTINGS_STORE["dhcp"]["reservations"] = [
+        r for r in _SETTINGS_STORE["dhcp"]["reservations"] if r["mac"].lower() != mac.lower()
+    ]
+    removed = before - len(_SETTINGS_STORE["dhcp"]["reservations"])
+    return {"ok": True, "removed": removed, "reservations": _SETTINGS_STORE["dhcp"]["reservations"]}
+
+
+async def add_port_rule(rule: dict[str, Any]) -> dict[str, Any]:
+    """Add a port forwarding rule."""
+    required = {"name", "protocol", "external_port", "internal_ip", "internal_port"}
+    if not required.issubset(rule.keys()):
+        return {"ok": False, "error": f"Missing fields: {required - set(rule.keys())}"}
+    rule.setdefault("enabled", True)
+    _SETTINGS_STORE["ports"]["rules"].append(rule)
+    return {"ok": True, "message": "Port rule added", "rules": _SETTINGS_STORE["ports"]["rules"]}
+
+
+async def remove_port_rule(idx: int) -> dict[str, Any]:
+    """Remove a port forwarding rule by index."""
+    rules = _SETTINGS_STORE["ports"]["rules"]
+    if idx < 0 or idx >= len(rules):
+        return {"ok": False, "error": f"Rule index {idx} out of range"}
+    removed = rules.pop(idx)
+    return {"ok": True, "message": f"Rule '{removed['name']}' removed", "rules": rules}

@@ -1306,6 +1306,10 @@
       <h1>Nest Wifi Dashboard</h1>
     </div>
     <div class="header-right">
+      <a href="/settings" class="btn btn-sm" title="Advanced Settings" style="text-decoration:none" aria-label="Open settings page">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </a>
       <div class="status-indicator" aria-live="polite">
         <span class="status-dot" id="connectionDot" title="Connection status"></span>
         <span id="connectionLabel">Connecting…</span>
@@ -1550,8 +1554,8 @@
     let isDemo = false;
     let allDevices = [];       // Full device list from API
     let filteredDevices = [];  // After search filter
-    let sortColumn = 'name';
-    let sortAsc = true;
+    let sortColumn = 'status';
+    let sortAsc = false;  // Online (1) first = descending
     let modalConfirmCallback = () => {};
     let initialLoad = true;
 
@@ -1805,7 +1809,7 @@
         : '<span class="chip chip-coral" style="font-size:0.95rem;padding:0.35rem 0.9rem"><span class="status-dot offline"></span> Offline</span>';
 
       document.getElementById('publicIP').innerHTML = `<code>${escapeHTML(data.wan?.ip_address || data.public_ip || data.wan_ip || '—')}</code>`;
-      document.getElementById('ispName').textContent = data.wan?.isp || data.isp || 'Google Nest Wifi Pro Mesh';
+      document.getElementById('ispName').textContent = data.isp || data.wan?.isp || 'Google Nest Wifi Pro Mesh';
       document.getElementById('uptime').textContent = data.uptime_human || formatUptime(data.uptime_seconds || data.uptime);
       document.getElementById('deviceCount').innerHTML = `<span class="chip chip-blue" style="font-size:1.15rem;font-weight:700;padding:0.25rem 0.85rem">${data.total_devices ?? data.connected_devices ?? data.device_count ?? (allDevices ? allDevices.length : '—')}</span>`;
       document.getElementById('networkLoad').innerHTML = `<span class="chip chip-teal" style="font-size:0.85rem">${escapeHTML(data.network_load || 'Normal')}</span>`;
@@ -2151,17 +2155,29 @@
        API ACTIONS
        ========================================================== */
     async function pauseDevice(deviceId, paused) {
+      const btn = event && event.target ? event.target.closest('button') : null;
+      if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
       try {
-        const res = await fetch(`${API_BASE}/api/devices/${deviceId}/pause`, {
+        const res = await fetch(`${API_BASE}/api/devices/${encodeURIComponent(deviceId)}/pause`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ paused })
         });
-        if (!res.ok) throw new Error(`${res.status}`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.ok === false) {
+          const errMsg = data.error || `HTTP ${res.status}`;
+          throw new Error(errMsg);
+        }
         showToast(`Device ${paused ? 'paused' : 'unpaused'} successfully`, 'success');
-        fetchData();
+        // Optimistically flip the paused state in allDevices before full refresh
+        const idx = allDevices.findIndex(d => (d.id || d.mac) === deviceId);
+        if (idx !== -1) { allDevices[idx].paused = paused; applyFilterAndSort(); }
+        setTimeout(fetchData, 1500); // full refresh after 1.5s
       } catch (err) {
-        showToast(`Failed to ${paused ? 'pause' : 'unpause'} device`, 'error');
+        console.error('pauseDevice error:', err);
+        showToast(`Failed to ${paused ? 'pause' : 'unpause'} device: ${err.message}`, 'error');
+      } finally {
+        if (btn) { btn.disabled = false; btn.style.opacity = ''; }
       }
     }
 
