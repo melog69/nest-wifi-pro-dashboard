@@ -18,16 +18,37 @@ from dotenv import load_dotenv
 _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
 load_dotenv(_env_path)
 
+import credentials
+
 # ---------------------------------------------------------------------------
-# Google account credentials
+# Google account credentials (loaded from encrypted store or .env)
 # ---------------------------------------------------------------------------
 GOOGLE_EMAIL: str = os.getenv("GOOGLE_EMAIL", "").strip()
 GOOGLE_MASTER_TOKEN: str = os.getenv("GOOGLE_MASTER_TOKEN", "").strip()
-
-# ---------------------------------------------------------------------------
-# Android device identifier — auto-generated if not supplied
-# ---------------------------------------------------------------------------
 ANDROID_ID: str = os.getenv("ANDROID_ID", "").strip() or secrets.token_hex(8)
+
+# Load from encrypted store if available
+_creds = credentials.load_credentials()
+if not _creds and GOOGLE_EMAIL and GOOGLE_MASTER_TOKEN:
+    credentials.migrate_from_env()
+    _creds = credentials.load_credentials()
+
+if _creds:
+    GOOGLE_EMAIL = _creds.get("google_email") or GOOGLE_EMAIL
+    GOOGLE_MASTER_TOKEN = _creds.get("google_master_token") or GOOGLE_MASTER_TOKEN
+    ANDROID_ID = _creds.get("android_id") or ANDROID_ID
+
+
+def reload_credentials() -> None:
+    """Reload credentials from encrypted storage into config constants."""
+    global GOOGLE_EMAIL, GOOGLE_MASTER_TOKEN, ANDROID_ID
+    c = credentials.load_credentials()
+    if c:
+        GOOGLE_EMAIL = c.get("google_email") or GOOGLE_EMAIL
+        GOOGLE_MASTER_TOKEN = c.get("google_master_token") or GOOGLE_MASTER_TOKEN
+        ANDROID_ID = c.get("android_id") or ANDROID_ID
+    else:
+        GOOGLE_MASTER_TOKEN = ""
 
 # ---------------------------------------------------------------------------
 # Network / router settings

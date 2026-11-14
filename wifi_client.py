@@ -219,6 +219,15 @@ async def _get_gw_client():
     return client
 
 
+def reset_client() -> None:
+    """Reset the cached GoogleWifi client instance so it re-authenticates with updated credentials."""
+    global _client_instance
+    _client_instance = None
+    _cache.invalidate("system_status")
+    _cache.invalidate("access_points")
+    _cache.invalidate("devices")
+
+
 # ===================================================================
 #  PUBLIC API
 # ===================================================================

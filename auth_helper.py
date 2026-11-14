@@ -141,14 +141,21 @@ def main() -> None:
 
     print(f"  ✓ Master token successfully obtained! ({master_token[:14]}...)")
 
-    # Step 5 — Save to .env
+    # Step 5 — Save encrypted credentials
     print()
-    _update_env("GOOGLE_EMAIL", email)
-    _update_env("GOOGLE_MASTER_TOKEN", master_token)
-    _update_env("ANDROID_ID", android_id)
-    print(f"  ✓ Saved to {_ENV_FILE}")
+    import credentials
+    saved = credentials.save_credentials(email, master_token, android_id)
+    if saved:
+        print(f"  ✓ Token successfully encrypted using {credentials._CIPHER_NAME}")
+        print(f"  ✓ Saved to .credentials.enc (no plaintext tokens stored in .env)")
+    else:
+        print(f"  ⚠ Failed to write encrypted file; falling back to .env")
+        _update_env("GOOGLE_EMAIL", email)
+        _update_env("GOOGLE_MASTER_TOKEN", master_token)
+        _update_env("ANDROID_ID", android_id)
     print()
     print("  You're all set! Now run start.bat to launch your live dashboard.")
+    print("  (You can also manage or refresh your Google credentials in the Settings tab at any time).")
     print()
 
 

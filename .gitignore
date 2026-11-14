@@ -30,6 +30,8 @@ ENV/
 .env
 .env.*
 !.env.example
+.credentials.enc
+*.enc
 
 # Logs and databases
 *.log

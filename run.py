@@ -65,9 +65,13 @@ def _print_banner() -> None:
     print(f"  Mode           : {mode_color}{mode}{reset}")
     if config.is_demo_mode():
         print("                   (No credentials configured — using mock data)")
-        print("                   Run 'python auth_helper.py' to set up live access.")
+        print("                   Authenticate in Settings or run 'python auth_helper.py'.")
     else:
         print(f"  Google account : {config.GOOGLE_EMAIL}")
+        import credentials
+        st = credentials.get_status()
+        if st.get("encrypted"):
+            print(f"  Token storage  : \033[92m🔒 {st.get('cipher')}\033[0m")
 
     print(f"  Router IP      : {config.ROUTER_IP}")
     print(f"  Server port    : {config.FLASK_PORT}")

@@ -344,6 +344,65 @@ def api_remove_port_rule(idx: int):
         return jsonify({"ok": False, "error": str(exc)}), 500
 
 
+# ===================================================================
+#  GOOGLE AUTHENTICATION ROUTES (Settings Tab)
+# ===================================================================
+
+@app.route("/api/auth/status")
+def api_auth_status():
+    """Return current Google authentication status and encryption details."""
+    try:
+        import credentials
+        st = credentials.get_status()
+        return jsonify({"ok": True, **st}), 200
+    except Exception as exc:
+        logger.exception("GET /api/auth/status failed")
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+@app.route("/api/auth/exchange", methods=["POST"])
+def api_auth_exchange():
+    """Exchange EmbeddedSetup oauth_token for a master token, encrypt and save."""
+    body = request.get_json(silent=True) or {}
+    email = body.get("email", "").strip()
+    oauth_token = body.get("oauth_token", "").strip()
+    android_id = body.get("android_id", "").strip() or None
+
+    if not email:
+        return jsonify({"ok": False, "error": "Google email address is required."}), 400
+    if not oauth_token:
+        return jsonify({"ok": False, "error": "oauth_token is required. Paste the cookie value or redirect URL."}), 400
+
+    try:
+        import credentials
+        result = credentials.exchange_oauth_token(email, oauth_token, android_id)
+        if result.get("ok"):
+            config.reload_credentials()
+            wifi_client.reset_client()
+            logger.info("Successfully authenticated & encrypted token for %s", email)
+            return jsonify(result), 200
+        else:
+            return jsonify(result), 400
+    except Exception as exc:
+        logger.exception("POST /api/auth/exchange failed")
+        return jsonify({"ok": False, "error": f"Authentication exchange failed: {exc}"}), 500
+
+
+@app.route("/api/auth/disconnect", methods=["POST"])
+def api_auth_disconnect():
+    """Disconnect Google account and remove encrypted credentials file."""
+    try:
+        import credentials
+        credentials.delete_credentials()
+        config.reload_credentials()
+        wifi_client.reset_client()
+        logger.info("Credentials cleared. Reverted to Demo mode.")
+        return jsonify({"ok": True, "message": "Google account disconnected. Credentials deleted."}), 200
+    except Exception as exc:
+        logger.exception("POST /api/auth/disconnect failed")
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
 # ---------------------------------------------------------------------------
 # Error handlers
 # ---------------------------------------------------------------------------

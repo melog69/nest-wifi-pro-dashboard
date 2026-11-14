@@ -573,7 +573,11 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
         Wi-Fi Settings
       </button>
-      <div class="nav-group-label" style="margin-top:0.75rem">System</div>
+      <div class="nav-group-label" style="margin-top:0.75rem">Account &amp; Security</div>
+      <button class="nav-item" data-section="auth" onclick="showSection('auth', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5z"/><circle cx="12" cy="16" r="1.5"/></svg>
+        Google Account
+      </button>
       <button class="nav-item" data-section="security" onclick="showSection('security', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         Security &amp; Firewall
@@ -1029,6 +1033,125 @@
         </div>
       </section>
 
+      <!-- ===================== GOOGLE AUTH ===================== -->
+      <section class="settings-section" id="section-auth">
+        <div class="section-heading">Google Account &amp; Authentication</div>
+
+        <div class="info-banner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Authentication tokens are encrypted on disk using <strong>Windows DPAPI</strong> (tied to your Windows user account). Master tokens are never stored in plaintext.
+        </div>
+
+        <!-- CURRENT STATUS CARD -->
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Account Status
+            <span class="chip chip-neutral" id="authModeBadge" style="margin-left:auto">Checking…</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Connected Google Account</span>
+              <span class="form-hint">Email address used to authenticate to Google Home APIs</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <span id="authEmailLabel" style="font-weight:600;font-size:0.95rem;color:var(--text)">None</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Credential Storage</span>
+              <span class="form-hint">How your access token is protected on this machine</span>
+            </div>
+            <span class="chip chip-green" id="authStorageBadge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Encrypted (.credentials.enc)
+            </span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Android Device ID</span>
+              <span class="form-hint">Unique 16-hex client identifier for Google Play Services OAuth</span>
+            </div>
+            <code class="mono" id="authAndroidIdLabel" style="font-size:0.85rem">—</code>
+          </div>
+
+          <div class="form-row" id="authDisconnectRow" style="justify-content:flex-end">
+            <button class="btn btn-danger btn-sm" id="authDisconnectBtn" onclick="disconnectGoogleAccount()">
+              Disconnect Account
+            </button>
+          </div>
+        </div>
+
+        <!-- AUTHENTICATION SETUP CARD -->
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Connect or Refresh Google Account
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:1.25rem;padding:0.5rem 0">
+            <!-- Step 1 -->
+            <div style="display:flex;gap:1rem;align-items:flex-start">
+              <div style="background:var(--google-blue-container);color:var(--google-blue-text);font-weight:700;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+              <div style="flex:1">
+                <div style="font-weight:600;margin-bottom:0.25rem">Enter Your Google Account Email &amp; Launch Sign-In</div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.75rem">
+                  Click the button below to open Google's official sign-in page (EmbeddedSetup) in a new browser tab.
+                </div>
+                <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+                  <input class="form-input" id="auth_input_email" type="email" placeholder="yourname@gmail.com" style="max-width:280px">
+                  <button class="btn btn-secondary" onclick="openGoogleSignIn()" style="display:inline-flex;align-items:center;gap:0.4rem">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    Open Google Sign-In
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div style="display:flex;gap:1rem;align-items:flex-start">
+              <div style="background:var(--google-blue-container);color:var(--google-blue-text);font-weight:700;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+              <div style="flex:1">
+                <div style="font-weight:600;margin-bottom:0.25rem">Copy the Session Token Cookie (oauth_token)</div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.45">
+                  1. In the Google window, sign in and complete 2FA. Click <em>"I agree"</em>.<br>
+                  2. When the blank/loading screen appears, press <strong>F12</strong> (Developer Tools).<br>
+                  3. Go to <strong>Application</strong> (Chrome/Edge/Brave) or <strong>Storage</strong> (Firefox) &rarr; <strong>Cookies</strong> &rarr; <code>https://accounts.google.com</code>.<br>
+                  4. Find the cookie named <strong>oauth_token</strong> (value starts with <code>oauth2_4/...</code>) and copy it.<br>
+                  <span style="display:block;margin-top:0.35rem;color:var(--text);font-weight:500"><em>Tip: You can also copy and paste the entire redirected page URL if visible!</em></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div style="display:flex;gap:1rem;align-items:flex-start">
+              <div style="background:var(--google-blue-container);color:var(--google-blue-text);font-weight:700;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+              <div style="flex:1">
+                <div style="font-weight:600;margin-bottom:0.25rem">Paste Token &amp; Encrypt</div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.75rem">
+                  Paste the cookie value or full URL below. We will immediately exchange it for a long-lived master token and encrypt it on disk.
+                </div>
+                <div style="display:flex;flex-direction:column;gap:0.75rem">
+                  <textarea class="form-input mono" id="auth_input_token" rows="2" placeholder="Paste oauth_token value (oauth2_4/...) or full redirect URL here..." style="width:100%;resize:vertical;font-size:0.85rem"></textarea>
+                  <div style="display:flex;align-items:center;gap:0.75rem">
+                    <button class="btn btn-primary" id="exchangeBtn" onclick="submitAuthExchange()" style="display:inline-flex;align-items:center;gap:0.4rem">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      Connect &amp; Encrypt Credentials
+                    </button>
+                    <span id="authExchangeSpinner" style="display:none;font-size:0.85rem;color:var(--text-secondary)">Exchanging token with Google…</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
     </div><!-- /settings-content -->
   </div><!-- /settings-layout -->
 
@@ -1340,8 +1463,115 @@
       return el.innerHTML;
     }
 
+    // ========== GOOGLE AUTHENTICATION ==========
+    async function loadAuthStatus() {
+      try {
+        const res = await fetch(`${API}/api/auth/status`);
+        const data = await res.json();
+        if (!data.ok) return;
+
+        const emailEl = document.getElementById('authEmailLabel');
+        const modeBadge = document.getElementById('authModeBadge');
+        const storageBadge = document.getElementById('authStorageBadge');
+        const androidIdEl = document.getElementById('authAndroidIdLabel');
+        const emailInput = document.getElementById('auth_input_email');
+        const disconnectBtn = document.getElementById('authDisconnectBtn');
+
+        if (data.has_credentials) {
+          emailEl.textContent = data.email || 'Connected';
+          if (emailInput && !emailInput.value) emailInput.value = data.email || '';
+          modeBadge.className = 'chip chip-green';
+          modeBadge.innerHTML = '<span class="status-dot"></span> Live Mode';
+
+          if (data.encrypted) {
+            storageBadge.className = 'chip chip-green';
+            storageBadge.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> ${escHTML(data.cipher || 'Encrypted (DPAPI)')}`;
+          } else {
+            storageBadge.className = 'chip chip-amber';
+            storageBadge.textContent = 'Plaintext (.env)';
+          }
+
+          androidIdEl.textContent = data.android_id || '—';
+          if (disconnectBtn) disconnectBtn.style.display = 'inline-flex';
+        } else {
+          emailEl.textContent = 'No account connected (Demo Mode)';
+          modeBadge.className = 'chip chip-neutral';
+          modeBadge.innerHTML = '<span class="status-dot offline"></span> Demo Mode';
+          storageBadge.className = 'chip chip-neutral';
+          storageBadge.textContent = 'None';
+          androidIdEl.textContent = '—';
+          if (disconnectBtn) disconnectBtn.style.display = 'none';
+        }
+      } catch (err) {
+        console.error('loadAuthStatus error:', err);
+      }
+    }
+
+    function openGoogleSignIn() {
+      const email = (getVal('auth_input_email') || '').trim();
+      const url = 'https://accounts.google.com/EmbeddedSetup' + (email ? `?Email=${encodeURIComponent(email)}` : '');
+      window.open(url, '_blank', 'width=600,height=700,menubar=no,toolbar=no');
+      showToast('Opened Google sign-in window. Sign in, complete 2FA, then copy oauth_token cookie from DevTools.', 'info', 6000);
+    }
+
+    async function submitAuthExchange() {
+      const email = (getVal('auth_input_email') || '').trim();
+      const rawToken = (getVal('auth_input_token') || '').trim();
+      const btn = document.getElementById('exchangeBtn');
+      const spinner = document.getElementById('authExchangeSpinner');
+
+      if (!email) {
+        showToast('Please enter your Google account email', 'error');
+        return;
+      }
+      if (!rawToken) {
+        showToast('Please paste the oauth_token cookie value or redirected URL', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      if (spinner) spinner.style.display = 'inline';
+
+      try {
+        const res = await fetch(`${API}/api/auth/exchange`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, oauth_token: rawToken })
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || 'Authentication exchange failed');
+
+        showToast(data.message || 'Connected successfully! Master token encrypted.', 'success', 6000);
+        setVal('auth_input_token', '');
+        await loadAuthStatus();
+        await loadSettings();
+      } catch (err) {
+        showToast(err.message, 'error', 7000);
+      } finally {
+        btn.disabled = false;
+        if (spinner) spinner.style.display = 'none';
+      }
+    }
+
+    async function disconnectGoogleAccount() {
+      if (!confirm('Are you sure you want to disconnect your Google account and delete stored encrypted credentials? The dashboard will return to Demo mode.')) {
+        return;
+      }
+      try {
+        const res = await fetch(`${API}/api/auth/disconnect`, { method: 'POST' });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        showToast('Google account disconnected', 'info');
+        await loadAuthStatus();
+        await loadSettings();
+      } catch (err) {
+        showToast('Disconnect error: ' + err.message, 'error');
+      }
+    }
+
     // Load on startup
     loadSettings();
+    loadAuthStatus();
   </script>
 </body>
 </html>
