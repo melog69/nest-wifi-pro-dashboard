@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nest Wifi Dashboard</title>
+  <style>
+    /* ============================================================
+       CSS RESET & VARIABLES
+       ============================================================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      /* Color Scheme */
+      --bg-primary: #0f1923;
+      --bg-card: #1a2736;
+      --bg-card-hover: #1e2e40;
+      --accent: #00bcd4;
+      --accent-dim: rgba(0, 188, 212, 0.15);
+      --success: #4caf50;
+      --warning: #ff9800;
+      --error: #f44336;
+      --text-primary: #e0e0e0;
+      --text-secondary: #9e9e9e;
+      --border: #2a3a4a;
+
+      /* Typography */
+      --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --fs-large: 2.5rem;
+      --fs-header: 1.1rem;
+      --fs-body: 0.875rem;
+      --fw-bold: 700;
+      --fw-semibold: 600;
+
+      /* Transitions */
+      --transition: 0.2s ease;
+
+      /* Spacing */
+      --gap: 1.25rem;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-stack);
+      font-size: var(--fs-body);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ============================================================
+       SCROLLBAR STYLING
+       ============================================================ */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-primary); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+    /* ============================================================
+       LOADING SKELETON ANIMATION
+       ============================================================ */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: var(--radius-sm);
+      color: transparent !important;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .skeleton * { visibility: hidden; }
+
+    /* ============================================================
+       SPINNER
+       ============================================================ */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+    }
+
+    /* ============================================================
+       HEADER
+       ============================================================ */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      background: linear-gradient(135deg, #152232, #1a2a3d);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .header-left svg {
+      width: 32px;
+      height: 32px;
+      color: var(--accent);
+    }
+
+    .header-left h1 {
+      font-size: 1.35rem;
+      font-weight: var(--fw-bold);
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--accent), #4dd0e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: var(--fs-body);
+      color: var(--text-secondary);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success);
+      transition: background var(--transition), box-shadow var(--transition);
+    }
+
+    .status-dot.demo {
+      background: var(--warning);
+      box-shadow: 0 0 6px var(--warning);
+    }
+
+    .status-dot.offline {
+      background: var(--error);
+      box-shadow: 0 0 6px var(--error);
+    }
+
+    .last-refresh {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* ============================================================
+       BUTTONS
+       ============================================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: var(--fs-body);
+      font-family: var(--font-stack);
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn:hover { background: var(--bg-card-hover); border-color: var(--accent); }
+    .btn:active { transform: scale(0.97); }
+    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0f1923;
+      border-color: var(--accent);
+      font-weight: var(--fw-semibold);
+    }
+
+    .btn-primary:hover { background: #00acc1; border-color: #00acc1; }
+
+    .btn-danger {
+      border-color: var(--error);
+      color: var(--error);
+    }
+
+    .btn-danger:hover { background: rgba(244,67,54,0.15); }
+
+    .btn-warning {
+      border-color: var(--warning);
+      color: var(--warning);
+    }
+
+    .btn-warning:hover { background: rgba(255,152,0,0.15); }
+
+    .btn-sm {
+      padding: 0.3rem 0.65rem;
+      font-size: 0.8rem;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* ============================================================
+       AUTO-REFRESH TOGGLE
+       ============================================================ */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: var(--fs-body);
+      color: var(--text-secondary);
+    }
+
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      cursor: pointer;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 11px;
+      transition: background var(--transition);
+    }
+
+    .toggle-slider::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      left: 3px;
+      top: 3px;
+      background: var(--text-secondary);
+      border-radius: 50%;
+      transition: all var(--transition);
+    }
+
+    .toggle input:checked + .toggle-slider {
+      background: var(--accent);
+    }
+
+    .toggle input:checked + .toggle-slider::after {
+      left: 21px;
+      background: #fff;
+    }
+
+    .toggle input:focus-visible + .toggle-slider {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* ============================================================
+       DEMO BANNER
+       ============================================================ */
+    .demo-banner {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.5rem;
+      background: linear-gradient(135deg, rgba(255,152,0,0.12), rgba(255,152,0,0.06));
+      border-bottom: 1px solid rgba(255,152,0,0.3);
+      color: var(--warning);
+      font-size: var(--fs-body);
+      text-align: center;
+    }
+
+    .demo-banner.visible { display: flex; }
+
+    /* ============================================================
+       MAIN LAYOUT
+       ============================================================ */
+    .main {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: var(--gap);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--gap);
+    }
+
+    /* ============================================================
+       CARD
+       ============================================================ */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(0,188,212,0.3);
+    }
+
+    .card:hover::before { opacity: 1; }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: var(--fs-header);
+      font-weight: var(--fw-semibold);
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .card-title svg {
+      width: 20px;
+      height: 20px;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .span-2 { grid-column: span 2; }
+    .span-full { grid-column: 1 / -1; }
+
+    /* ============================================================
+       NETWORK OVERVIEW (Card 1)
+       ============================================================ */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .overview-stat {
+      text-align: center;
+      padding: 0.75rem;
+      background: rgba(0,0,0,0.15);
+      border-radius: var(--radius-sm);
+      transition: background var(--transition);
+    }
+
+    .overview-stat:hover { background: rgba(0,188,212,0.08); }
+
+    .overview-stat .label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+
+    .overview-stat .value {
+      font-size: 1.4rem;
+      font-weight: var(--fw-bold);
+      color: var(--text-primary);
+    }
+
+    .overview-stat .value.online { color: var(--success); }
+    .overview-stat .value.offline { color: var(--error); }
+
+    .overview-stat .sub {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 0.15rem;
+    }
+
+    /* ============================================================
+       SPEED TEST (Card 2)
+       ============================================================ */
+    .speed-gauges {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .gauge {
+      position: relative;
+      width: 100px;
+      height: 100px;
+    }
+
+    .gauge-circle {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: conic-gradient(
+        var(--accent) calc(var(--pct, 0) * 1%),
+        rgba(42,58,74,0.5) 0
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.6s ease;
+    }
+
+    .gauge-inner {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gauge-value {
+      font-size: 1.3rem;
+      font-weight: var(--fw-bold);
+      line-height: 1.2;
+    }
+
+    .gauge-unit {
+      font-size: 0.6rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+
+    .gauge-label {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 0.4rem;
+    }
+
+    .speed-meta {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    /* ============================================================
+       QUICK ACTIONS (Card 3)
+       ============================================================ */
+    .actions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .actions-list .btn {
+      width: 100%;
+      justify-content: center;
+      padding: 0.65rem 1rem;
+    }
+
+    .guest-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      justify-content: center;
+      margin-top: -0.25rem;
+    }
+
+    .guest-status .status-dot {
+      width: 6px;
+      height: 6px;
+    }
+
+    /* ============================================================
+       MESH TOPOLOGY
+       ============================================================ */
+    .mesh-nodes {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: var(--gap);
+      padding-bottom: 0.5rem;
+      position: relative;
+    }
+
+    .mesh-node {
+      min-width: 240px;
+      flex: 1 1 calc(25% - var(--gap));
+      background: rgba(0,0,0,0.15);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      position: relative;
+      transition: all var(--transition);
+    }
+
+    .mesh-node:hover {
+      border-color: var(--accent);
+      background: rgba(0,188,212,0.05);
+    }
+
+    .mesh-node.primary {
+      border-color: var(--accent);
+      box-shadow: 0 0 15px rgba(0,188,212,0.1);
+    }
+
+    .mesh-connector {
+      display: flex;
+      align-items: center;
+      color: var(--border);
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      padding: 0 0.25rem;
+    }
+
+    .mesh-connector svg {
+      width: 40px;
+      height: 20px;
+      color: var(--accent);
+      opacity: 0.4;
+    }
+
+    .mesh-node-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .mesh-node-name {
+      font-weight: var(--fw-semibold);
+      font-size: 0.95rem;
+    }
+
+    .mesh-node-status {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .mesh-node-detail {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid rgba(42,58,74,0.5);
+      font-size: 0.8rem;
+    }
+
+    .mesh-node-detail:last-of-type { border-bottom: none; }
+    .mesh-node-detail .label { color: var(--text-secondary); }
+    .mesh-node-detail .val { color: var(--text-primary); }
+
+    .signal-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .signal-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 14px;
+    }
+
+    .signal-bar {
+      width: 3px;
+      border-radius: 1px;
+      background: var(--border);
+      transition: background var(--transition);
+    }
+
+    .signal-bar:nth-child(1) { height: 4px; }
+    .signal-bar:nth-child(2) { height: 7px; }
+    .signal-bar:nth-child(3) { height: 10px; }
+    .signal-bar:nth-child(4) { height: 14px; }
+
+    .signal-bar.active { background: var(--success); }
+    .signal-bar.active.medium { background: var(--warning); }
+    .signal-bar.active.weak { background: var(--error); }
+
+    .mesh-node .btn {
+      width: 100%;
+      margin-top: 0.75rem;
+      justify-content: center;
+    }
+
+    /* ============================================================
+       CONNECTED DEVICES TABLE
+       ============================================================ */
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.45rem 0.75rem;
+      flex: 1;
+      max-width: 360px;
+      transition: border-color var(--transition);
+    }
+
+    .search-box:focus-within { border-color: var(--accent); }
+
+    .search-box svg {
+      width: 16px;
+      height: 16px;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    .search-box input {
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      font-size: var(--fs-body);
+      font-family: var(--font-stack);
+      outline: none;
+      width: 100%;
+    }
+
+    .search-box input::placeholder { color: var(--text-secondary); }
+
+    .device-count {
+      font-size: var(--fs-body);
+      color: var(--text-secondary);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    thead th {
+      background: rgba(0,0,0,0.2);
+      padding: 0.65rem 0.75rem;
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: var(--fw-semibold);
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition: color var(--transition);
+    }
+
+    thead th:hover { color: var(--accent); }
+
+    thead th .sort-icon {
+      display: inline-block;
+      margin-left: 0.3rem;
+      opacity: 0.3;
+      font-size: 0.65rem;
+    }
+
+    thead th.sorted .sort-icon { opacity: 1; color: var(--accent); }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(42,58,74,0.4);
+      transition: background var(--transition);
+    }
+
+    tbody tr:hover { background: rgba(0,188,212,0.04); }
+    tbody tr:last-child { border-bottom: none; }
+
+    tbody td {
+      padding: 0.6rem 0.75rem;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    .device-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .device-status-dot.online {
+      background: var(--success);
+      box-shadow: 0 0 4px var(--success);
+    }
+
+    .device-status-dot.offline {
+      background: var(--text-secondary);
+    }
+
+    .device-name-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .device-icon {
+      width: 20px;
+      height: 20px;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    tr.paused {
+      opacity: 0.6;
+    }
+
+    tr.paused .device-name-text {
+      text-decoration: line-through;
+      color: var(--error);
+    }
+
+    tr.prioritized {
+      background: rgba(255,193,7,0.04) !important;
+    }
+
+    tr.prioritized .device-name-cell::after {
+      content: '★';
+      color: #ffc107;
+      font-size: 0.85rem;
+    }
+
+    .signal-strength-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .signal-mini-bar {
+      width: 40px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .signal-mini-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+
+    .actions-cell {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    /* Priority dropdown */
+    .priority-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .priority-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      z-index: 50;
+      min-width: 100px;
+      overflow: hidden;
+    }
+
+    .priority-menu.open { display: block; }
+
+    .priority-menu button {
+      display: block;
+      width: 100%;
+      padding: 0.45rem 0.75rem;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      font-size: var(--fs-body);
+      font-family: var(--font-stack);
+      cursor: pointer;
+      text-align: left;
+      transition: background var(--transition);
+    }
+
+    .priority-menu button:hover { background: var(--bg-card-hover); }
+
+    /* ============================================================
+       LOCAL DEVICE INFO
+       ============================================================ */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .info-item {
+      background: rgba(0,0,0,0.15);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+      transition: background var(--transition);
+    }
+
+    .info-item:hover { background: rgba(0,188,212,0.06); }
+
+    .info-item .label {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.2rem;
+    }
+
+    .info-item .val {
+      font-size: 0.95rem;
+      font-weight: var(--fw-semibold);
+      word-break: break-all;
+    }
+
+    /* ============================================================
+       TOAST NOTIFICATIONS
+       ============================================================ */
+    .toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 0.5rem;
+      pointer-events: none;
+    }
+
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      font-size: var(--fs-body);
+      pointer-events: auto;
+      animation: slideIn 0.3s ease forwards;
+      max-width: 380px;
+    }
+
+    .toast.success { border-left: 3px solid var(--success); }
+    .toast.error   { border-left: 3px solid var(--error); }
+    .toast.warning { border-left: 3px solid var(--warning); }
+    .toast.info    { border-left: 3px solid var(--accent); }
+
+    .toast.removing { animation: slideOut 0.3s ease forwards; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(60px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes slideOut {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(60px); }
+    }
+
+    /* ============================================================
+       MODAL
+       ============================================================ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+      animation: modalPop 0.25s ease;
+    }
+
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.92); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: var(--fw-semibold);
+      margin-bottom: 0.75rem;
+    }
+
+    .modal-body {
+      color: var(--text-secondary);
+      margin-bottom: 1.25rem;
+      line-height: 1.6;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1100px) {
+      .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+      .span-2 { grid-column: span 2; }
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .span-2 { grid-column: span 1; }
+      .span-full { grid-column: span 1; }
+
+      .header {
+        padding: 0.75rem 1rem;
+      }
+
+      .overview-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .mesh-nodes {
+        flex-direction: column;
+      }
+
+      .mesh-connector { display: none; }
+
+      .speed-gauges { gap: 1rem; }
+    }
+
+    @media (max-width: 480px) {
+      .overview-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+
+    /* ============================================================
+       SECTION SPACING
+       ============================================================ */
+    .section-title {
+      grid-column: 1 / -1;
+      font-size: 0.75rem;
+      font-weight: var(--fw-semibold);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      padding-top: 0.5rem;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 0.75rem;
+      opacity: 0.4;
+    }
+
+    /* Pulse animation for live elements */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .pulse { animation: pulse 2s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       HEADER
+       ============================================================ -->
+  <header class="header" role="banner">
+    <div class="header-left">
+      <!-- Wifi SVG Icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+        <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+        <circle cx="12" cy="20" r="1"/>
+      </svg>
+      <h1>Nest Wifi Dashboard</h1>
+    </div>
+    <div class="header-right">
+      <div class="status-indicator" aria-live="polite">
+        <span class="status-dot" id="connectionDot" title="Connection status"></span>
+        <span id="connectionLabel">Connecting…</span>
+      </div>
+      <span class="last-refresh" id="lastRefresh" aria-live="polite">—</span>
+      <button class="btn btn-sm" id="refreshBtn" aria-label="Refresh data now" onclick="fetchData()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Refresh
+      </button>
+      <label class="toggle-wrap">
+        <span>Auto</span>
+        <span class="toggle">
+          <input type="checkbox" id="autoRefreshToggle" checked aria-label="Toggle auto-refresh">
+          <span class="toggle-slider"></span>
+        </span>
+      </label>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       DEMO MODE BANNER
+       ============================================================ -->
+  <div class="demo-banner" id="demoBanner" role="alert">
+    🔧 Running in Demo Mode — Configure your credentials in <code>.env</code> to connect to your real network
+  </div>
+
+  <!-- ============================================================
+       MAIN DASHBOARD
+       ============================================================ -->
+  <main class="main">
+    <div class="dashboard-grid">
+
+      <!-- ──────────────── NETWORK OVERVIEW ──────────────── -->
+      <div class="card span-2" id="overviewCard">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          Network Overview
+        </div>
+        <div class="overview-grid" id="overviewGrid">
+          <div class="overview-stat">
+            <div class="label">WAN Status</div>
+            <div class="value" id="wanStatus">—</div>
+          </div>
+          <div class="overview-stat">
+            <div class="label">Public IP</div>
+            <div class="value" id="publicIP" style="font-size:1rem">—</div>
+          </div>
+          <div class="overview-stat">
+            <div class="label">ISP</div>
+            <div class="value" id="ispName" style="font-size:1rem">—</div>
+          </div>
+          <div class="overview-stat">
+            <div class="label">Uptime</div>
+            <div class="value" id="uptime" style="font-size:1rem">—</div>
+          </div>
+          <div class="overview-stat">
+            <div class="label">Connected Devices</div>
+            <div class="value" id="deviceCount">—</div>
+          </div>
+          <div class="overview-stat">
+            <div class="label">Network Load</div>
+            <div class="value" id="networkLoad" style="font-size:1rem">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ──────────────── SPEED TEST ──────────────── -->
+      <div class="card" id="speedCard">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Speed Test
+        </div>
+        <div class="speed-gauges">
+          <div>
+            <div class="gauge">
+              <div class="gauge-circle" id="dlGauge" style="--pct:0">
+                <div class="gauge-inner">
+                  <span class="gauge-value" id="dlSpeed">—</span>
+                  <span class="gauge-unit">Mbps</span>
+                </div>
+              </div>
+            </div>
+            <div class="gauge-label">Download</div>
+          </div>
+          <div>
+            <div class="gauge">
+              <div class="gauge-circle" id="ulGauge" style="--pct:0">
+                <div class="gauge-inner">
+                  <span class="gauge-value" id="ulSpeed">—</span>
+                  <span class="gauge-unit">Mbps</span>
+                </div>
+              </div>
+            </div>
+            <div class="gauge-label">Upload</div>
+          </div>
+        </div>
+        <div class="speed-meta" id="speedMeta">No speed test data</div>
+        <button class="btn btn-primary" style="width:100%" id="runSpeedBtn" onclick="runSpeedTest()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Run Speed Test
+        </button>
+      </div>
+
+      <!-- ──────────────── QUICK ACTIONS ──────────────── -->
+      <div class="card" id="actionsCard">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Quick Actions
+        </div>
+        <div class="actions-list">
+          <button class="btn btn-danger" onclick="confirmAction('Restart Network', 'Are you sure you want to restart the entire network? All devices will temporarily lose connectivity.', () => restartNetwork())">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Restart Network
+          </button>
+          <button class="btn btn-primary" onclick="runSpeedTest()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Run Speed Test
+          </button>
+          <button class="btn btn-warning" id="guestNetBtn" onclick="toggleGuestNetwork()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Toggle Guest Network
+          </button>
+          <div class="guest-status" id="guestStatus">
+            <span class="status-dot offline"></span>
+            <span>Guest: Unknown</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ──────────────── MESH TOPOLOGY SECTION ──────────────── -->
+      <div class="section-title">Mesh Network Topology</div>
+
+      <div class="card span-full" id="meshCard">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+          Mesh Nodes
+        </div>
+        <div class="mesh-nodes" id="meshNodes">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <p>Loading mesh nodes…</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ──────────────── CONNECTED DEVICES SECTION ──────────────── -->
+      <div class="section-title">Connected Devices</div>
+
+      <div class="card span-full" id="devicesCard">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Connected Devices
+        </div>
+        <div class="table-toolbar">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="deviceSearch" placeholder="Search devices…" oninput="filterDevices(this.value)" aria-label="Search connected devices">
+          </div>
+          <span class="device-count" id="deviceCountLabel">0 devices</span>
+        </div>
+        <div class="table-wrap">
+          <table aria-label="Connected devices list">
+            <thead>
+              <tr>
+                <th onclick="sortDevices('status')" aria-sort="none">Status <span class="sort-icon">▲</span></th>
+                <th onclick="sortDevices('name')" aria-sort="none">Device Name <span class="sort-icon">▲</span></th>
+                <th onclick="sortDevices('type')" aria-sort="none">Type <span class="sort-icon">▲</span></th>
+                <th onclick="sortDevices('ip')" aria-sort="none">IP Address <span class="sort-icon">▲</span></th>
+                <th onclick="sortDevices('mac')" aria-sort="none">MAC Address <span class="sort-icon">▲</span></th>
+                <th onclick="sortDevices('connection')" aria-sort="none">Connection <span class="sort-icon">▲</span></th>
+                <th onclick="sortDevices('signal')" aria-sort="none">Signal <span class="sort-icon">▲</span></th>
+                <th onclick="sortDevices('usage')" aria-sort="none">Data Usage <span class="sort-icon">▲</span></th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="devicesBody">
+              <tr><td colspan="9" class="empty-state">Loading devices…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ──────────────── LOCAL DEVICE INFO SECTION ──────────────── -->
+      <div class="section-title">Local Device Info</div>
+
+      <div class="card span-full" id="eurekaCard">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          Eureka Info
+        </div>
+        <div class="info-grid" id="eurekaGrid">
+          <div class="empty-state" style="grid-column:1/-1">Loading device info…</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================================================
+       CONFIRMATION MODAL
+       ============================================================ -->
+  <div class="modal-overlay" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <div class="modal-title" id="modalTitle">Confirm Action</div>
+      <div class="modal-body" id="modalBody">Are you sure?</div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-danger" id="modalConfirmBtn" onclick="modalConfirmCallback()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       RESULT MODAL (Speed Test)
+       ============================================================ -->
+  <div class="modal-overlay" id="resultModal" role="dialog" aria-modal="true" aria-labelledby="resultModalTitle">
+    <div class="modal">
+      <div class="modal-title" id="resultModalTitle">Speed Test Complete</div>
+      <div class="modal-body" id="resultModalBody"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="closeResultModal()">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       TOAST CONTAINER
+       ============================================================ -->
+  <div class="toast-container" id="toastContainer" aria-live="assertive" aria-atomic="true"></div>
+
+  <!-- ============================================================
+       JAVASCRIPT
+       ============================================================ -->
+  <script>
+    /* ==========================================================
+       STATE & CONFIG
+       ========================================================== */
+    const API_BASE = '';  // Same origin — Flask serves this
+    const REFRESH_INTERVAL = 30000; // 30 seconds
+
+    let autoRefreshEnabled = true;
+    let autoRefreshTimer = null;
+    let isDemo = false;
+    let allDevices = [];       // Full device list from API
+    let filteredDevices = [];  // After search filter
+    let sortColumn = 'name';
+    let sortAsc = true;
+    let modalConfirmCallback = () => {};
+    let initialLoad = true;
+
+    /* ==========================================================
+       SVG ICON LIBRARY (Device Types)
+       ========================================================== */
+    const DEVICE_ICONS = {
+      phone: `<svg class="device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`,
+      laptop: `<svg class="device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="20" x2="22" y2="20"/></svg>`,
+      tablet: `<svg class="device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`,
+      tv: `<svg class="device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>`,
+      speaker: `<svg class="device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><circle cx="12" cy="14" r="4"/><line x1="12" y1="6" x2="12.01" y2="6"/></svg>`,
+      iot: `<svg class="device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>`,
+      gaming: `<svg class="device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg>`,
+      unknown: `<svg class="device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`
+    };
+
+    /* Map API type strings to icon keys */
+    function mapDeviceType(type) {
+      if (!type) return 'unknown';
+      const t = type.toLowerCase();
+      if (t.includes('phone') || t.includes('mobile')) return 'phone';
+      if (t.includes('laptop') || t.includes('computer') || t.includes('desktop') || t.includes('pc')) return 'laptop';
+      if (t.includes('tablet') || t.includes('ipad')) return 'tablet';
+      if (t.includes('tv') || t.includes('television') || t.includes('chromecast') || t.includes('roku') || t.includes('fire')) return 'tv';
+      if (t.includes('speaker') || t.includes('home') || t.includes('echo') || t.includes('nest') || t.includes('alexa') || t.includes('sonos')) return 'speaker';
+      if (t.includes('iot') || t.includes('sensor') || t.includes('smart') || t.includes('plug') || t.includes('camera') || t.includes('thermostat') || t.includes('light') || t.includes('bulb')) return 'iot';
+      if (t.includes('game') || t.includes('playstation') || t.includes('xbox') || t.includes('nintendo') || t.includes('switch') || t.includes('console')) return 'gaming';
+      return 'unknown';
+    }
+
+    /* ==========================================================
+       TOAST SYSTEM
+       ========================================================== */
+    function showToast(message, type = 'info', duration = 4000) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('removing');
+        toast.addEventListener('animationend', () => toast.remove());
+      }, duration);
+    }
+
+    /* ==========================================================
+       MODAL SYSTEM
+       ========================================================== */
+    function confirmAction(title, body, callback) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').textContent = body;
+      modalConfirmCallback = () => {
+        closeModal();
+        callback();
+      };
+      document.getElementById('confirmModal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('confirmModal').classList.remove('open');
+      modalConfirmCallback = () => {};
+    }
+
+    function showResultModal(title, bodyHTML) {
+      document.getElementById('resultModalTitle').textContent = title;
+      document.getElementById('resultModalBody').innerHTML = bodyHTML;
+      document.getElementById('resultModal').classList.add('open');
+    }
+
+    function closeResultModal() {
+      document.getElementById('resultModal').classList.remove('open');
+    }
+
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', e => {
+        if (e.target === overlay) {
+          overlay.classList.remove('open');
+        }
+      });
+    });
+
+    // Close modals on Escape key
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        closeModal();
+        closeResultModal();
+        closeAllPriorityMenus();
+      }
+    });
+
+    /* ==========================================================
+       UTILITY HELPERS
+       ========================================================== */
+    function formatUptime(seconds) {
+      if (!seconds && seconds !== 0) return '—';
+      const d = Math.floor(seconds / 86400);
+      const h = Math.floor((seconds % 86400) / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      if (d > 0) return `${d}d ${h}h`;
+      if (h > 0) return `${h}h ${m}m`;
+      return `${m}m`;
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes && bytes !== 0) return '—';
+      const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+      let i = 0;
+      let val = bytes;
+      while (val >= 1024 && i < units.length - 1) { val /= 1024; i++; }
+      return `${val.toFixed(i > 0 ? 1 : 0)} ${units[i]}`;
+    }
+
+    function formatTime(ts) {
+      if (!ts) return '—';
+      const d = new Date(ts);
+      return d.toLocaleString(undefined, {
+        month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      const el = document.createElement('span');
+      el.textContent = str;
+      return el.innerHTML;
+    }
+
+    /* ==========================================================
+       SIGNAL BARS HELPER
+       ========================================================== */
+    function signalBarsHTML(strength) {
+      // strength: 0-100
+      const s = Math.max(0, Math.min(100, strength || 0));
+      const activeBars = s > 75 ? 4 : s > 50 ? 3 : s > 25 ? 2 : s > 0 ? 1 : 0;
+      const cls = s > 50 ? '' : s > 25 ? ' medium' : ' weak';
+      let html = '<div class="signal-bars">';
+      for (let i = 1; i <= 4; i++) {
+        html += `<div class="signal-bar${i <= activeBars ? ` active${cls}` : ''}"></div>`;
+      }
+      html += '</div>';
+      return html;
+    }
+
+    function signalColor(strength) {
+      if (strength > 50) return 'var(--success)';
+      if (strength > 25) return 'var(--warning)';
+      return 'var(--error)';
+    }
+
+    /* ==========================================================
+       DATA FETCHING
+       ========================================================== */
+    async function apiFetch(path) {
+      try {
+        const res = await fetch(`${API_BASE}${path}`);
+        if (!res.ok) throw new Error(`${res.status}`);
+        return await res.json();
+      } catch (err) {
+        console.warn(`API ${path}:`, err);
+        return null;
+      }
+    }
+
+    async function fetchData() {
+      const refreshBtn = document.getElementById('refreshBtn');
+      refreshBtn.disabled = true;
+
+      try {
+        // Fetch all endpoints in parallel
+        const [configData, status, devices, speedtestRaw, eurekaRaw, apData] = await Promise.all([
+          apiFetch('/api/config'),
+          apiFetch('/api/status'),
+          apiFetch('/api/devices'),
+          apiFetch('/api/speed-test'),
+          apiFetch('/api/local-info'),
+          apiFetch('/api/access-points')
+        ]);
+
+        // --- Demo mode detection ---
+        isDemo = configData?.demo_mode || status?.demo || false;
+        const banner = document.getElementById('demoBanner');
+        const dot = document.getElementById('connectionDot');
+        const label = document.getElementById('connectionLabel');
+
+        if (isDemo) {
+          banner.classList.add('visible');
+          dot.className = 'status-dot demo';
+          label.textContent = 'Demo Mode';
+        } else if (status) {
+          banner.classList.remove('visible');
+          dot.className = 'status-dot';
+          label.textContent = 'Connected';
+        } else {
+          dot.className = 'status-dot offline';
+          label.textContent = 'Offline';
+        }
+
+        // --- Network Overview ---
+        if (status) {
+          updateOverview(status);
+        }
+
+        // --- Devices ---
+        if (devices) {
+          allDevices = Array.isArray(devices) ? devices : (devices.devices || []);
+          applyFilterAndSort();
+        }
+
+        // --- Speed Test (nested under "speed_test" key) ---
+        if (speedtestRaw) {
+          const st = speedtestRaw.speed_test || speedtestRaw;
+          updateSpeedTest(st);
+        }
+
+        // --- Eureka Info (may have an "ok" or "info" wrapper) ---
+        if (eurekaRaw) {
+          const ei = eurekaRaw.info || { ...eurekaRaw };
+          delete ei.ok;
+          delete ei.demo;
+          updateEurekaInfo(ei);
+        }
+
+        // --- Mesh Nodes (from dedicated /api/access-points or fallback) ---
+        const meshData = (apData && (apData.access_points || apData)) || (status && status.access_points) || [];
+        updateMeshNodes(meshData);
+
+        // Update timestamp
+        document.getElementById('lastRefresh').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+        initialLoad = false;
+
+      } catch (err) {
+        console.error('Fetch error:', err);
+        showToast('Failed to fetch data', 'error');
+      } finally {
+        refreshBtn.disabled = false;
+      }
+    }
+
+    /* ==========================================================
+       UPDATE: NETWORK OVERVIEW
+       ========================================================== */
+    function updateOverview(data) {
+      const wanEl = document.getElementById('wanStatus');
+      const wanOnline = data.wan?.connected || data.wan_connected || data.wan_status === 'online' || data.status === 'online';
+      wanEl.textContent = wanOnline ? 'Online' : 'Offline';
+      wanEl.className = `value ${wanOnline ? 'online' : 'offline'}`;
+
+      document.getElementById('publicIP').textContent = data.wan?.ip_address || data.public_ip || data.wan_ip || '—';
+      document.getElementById('ispName').textContent = data.wan?.isp || data.isp || 'Google Nest Wifi Pro Mesh';
+      document.getElementById('uptime').textContent = data.uptime_human || formatUptime(data.uptime_seconds || data.uptime);
+      document.getElementById('deviceCount').textContent = data.total_devices ?? data.connected_devices ?? data.device_count ?? (allDevices ? allDevices.length : '—');
+      document.getElementById('networkLoad').textContent = data.network_load || 'Normal';
+    }
+
+    /* ==========================================================
+       UPDATE: SPEED TEST
+       ========================================================== */
+    function updateSpeedTest(data) {
+      const dl = data.download_mbps ?? data.download_speed ?? data.download ?? 0;
+      const ul = data.upload_mbps ?? data.upload_speed ?? data.upload ?? 0;
+
+      document.getElementById('dlSpeed').textContent = dl ? dl.toFixed(1) : '—';
+      document.getElementById('ulSpeed').textContent = ul ? ul.toFixed(1) : '—';
+
+      // Gauge percentages (assume max ~1000 Mbps)
+      const dlPct = Math.min(100, (dl / 1000) * 100);
+      const ulPct = Math.min(100, (ul / 1000) * 100);
+      document.getElementById('dlGauge').style.setProperty('--pct', dlPct);
+      document.getElementById('ulGauge').style.setProperty('--pct', ulPct);
+
+      const tested = data.timestamp || data.last_tested || data.tested_at;
+      document.getElementById('speedMeta').textContent = tested
+        ? `Last tested: ${formatTime(tested)}`
+        : 'No recent test data';
+    }
+
+    /* ==========================================================
+       UPDATE: EUREKA INFO
+       ========================================================== */
+    function updateEurekaInfo(data) {
+      const grid = document.getElementById('eurekaGrid');
+      if (!data || Object.keys(data).length === 0) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">No device info available</div>';
+        return;
+      }
+
+      // Pretty-print key names
+      function prettyKey(k) {
+        return k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      }
+
+      let html = '';
+      const fields = data;
+      for (const [key, val] of Object.entries(fields)) {
+        if (typeof val === 'object' && val !== null) continue; // Skip nested objects
+        html += `
+          <div class="info-item">
+            <div class="label">${escapeHTML(prettyKey(key))}</div>
+            <div class="val">${escapeHTML(String(val))}</div>
+          </div>`;
+      }
+      grid.innerHTML = html || '<div class="empty-state" style="grid-column:1/-1">No fields</div>';
+    }
+
+    /* ==========================================================
+       UPDATE: MESH NODES
+       ========================================================== */
+    function updateMeshNodes(rawNodes) {
+      const container = document.getElementById('meshNodes');
+      const nodes = Array.isArray(rawNodes)
+        ? rawNodes
+        : (rawNodes && Array.isArray(rawNodes.access_points) ? rawNodes.access_points : []);
+
+      if (!nodes || nodes.length === 0) {
+        container.innerHTML = '<div class="empty-state" style="width:100%"><p>No mesh nodes detected</p></div>';
+        return;
+      }
+
+      let html = '';
+      nodes.forEach((node, idx) => {
+        const isOnline = node.status === 'online' || node.online === true;
+        const isPrimary = node.role === 'primary' || idx === 0 || node.is_primary;
+        const signal = node.signal_quality ?? node.signal ?? 85;
+        const devCount = node.connected_clients ?? node.connected_devices ?? node.device_count ?? 0;
+
+        // Connector between nodes
+        if (idx > 0) {
+          html += `<div class="mesh-connector" aria-hidden="true">
+            <svg viewBox="0 0 40 20"><line x1="0" y1="10" x2="40" y2="10" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3"/></svg>
+          </div>`;
+        }
+
+        html += `
+          <div class="mesh-node ${isPrimary ? 'primary' : ''}">
+            <div class="mesh-node-header">
+              <span class="mesh-node-name">${escapeHTML(node.name || node.friendly_name || `Node ${idx + 1}`)}</span>
+              <span class="mesh-node-status">
+                <span class="status-dot ${isOnline ? '' : 'offline'}"></span>
+                ${isOnline ? 'Online' : 'Offline'}
+              </span>
+            </div>
+            <div class="mesh-node-detail"><span class="label">Connected Devices</span><span class="val" style="font-weight:600">${devCount}</span></div>
+            <div class="mesh-node-detail">
+              <span class="label">${isPrimary ? 'WAN Uplink' : 'Backhaul Signal'}</span>
+              <span class="val signal-bar-wrap">${isPrimary ? '<span style="color:var(--success);font-weight:600">Gigabit Wired</span>' : `${signalBarsHTML(signal)} ${signal}%`}</span>
+            </div>
+            <div class="mesh-node-detail"><span class="label">IP Address</span><span class="val">${escapeHTML(node.ip_address || node.ip || '—')}</span></div>
+            <div class="mesh-node-detail"><span class="label">Firmware</span><span class="val">${escapeHTML(node.software_version || node.firmware || node.firmware_version || '—')}</span></div>
+            ${isPrimary ? '<div class="mesh-node-detail"><span class="label">System Role</span><span class="val" style="color:var(--accent);font-weight:600">Primary Gateway</span></div>' : ''}
+            <button class="btn btn-sm btn-danger" onclick="confirmAction('Restart Node', 'Restart ${escapeHTML(node.name || 'this node')}? Devices connected to it will temporarily disconnect.', () => restartAP('${node.id || node.ap_id || idx}'))">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Restart Node
+            </button>
+          </div>`;
+      });
+
+      container.innerHTML = html;
+    }
+
+    /* ==========================================================
+       DEVICES: FILTER & SORT
+       ========================================================== */
+    function filterDevices(query) {
+      const q = (query || '').toLowerCase().trim();
+      filteredDevices = q
+        ? allDevices.filter(d =>
+            (d.name || d.friendly_name || '').toLowerCase().includes(q) ||
+            (d.ip_address || d.ip || '').includes(q) ||
+            (d.mac_address || d.mac || '').toLowerCase().includes(q) ||
+            (d.type || d.device_type || '').toLowerCase().includes(q)
+          )
+        : [...allDevices];
+      renderDevices();
+    }
+
+    function sortDevices(col) {
+      // Toggle sort direction if same column
+      if (sortColumn === col) {
+        sortAsc = !sortAsc;
+      } else {
+        sortColumn = col;
+        sortAsc = true;
+      }
+      // Update header styles
+      document.querySelectorAll('thead th').forEach(th => th.classList.remove('sorted'));
+      const idx = ['status','name','type','ip','mac','connection','signal','usage'].indexOf(col);
+      if (idx >= 0) {
+        const th = document.querySelectorAll('thead th')[idx];
+        th.classList.add('sorted');
+        th.querySelector('.sort-icon').textContent = sortAsc ? '▲' : '▼';
+      }
+      applyFilterAndSort();
+    }
+
+    function applyFilterAndSort() {
+      const q = (document.getElementById('deviceSearch').value || '').toLowerCase().trim();
+      filteredDevices = q
+        ? allDevices.filter(d =>
+            (d.name || d.friendly_name || '').toLowerCase().includes(q) ||
+            (d.ip_address || d.ip || '').includes(q) ||
+            (d.mac_address || d.mac || '').toLowerCase().includes(q) ||
+            (d.type || d.device_type || '').toLowerCase().includes(q)
+          )
+        : [...allDevices];
+
+      // Sort
+      filteredDevices.sort((a, b) => {
+        let aVal, bVal;
+        switch (sortColumn) {
+          case 'status':
+            aVal = (a.status === 'online' || a.online) ? 1 : 0;
+            bVal = (b.status === 'online' || b.online) ? 1 : 0;
+            break;
+          case 'name':
+            aVal = (a.name || a.friendly_name || '').toLowerCase();
+            bVal = (b.name || b.friendly_name || '').toLowerCase();
+            break;
+          case 'type':
+            aVal = (a.type || a.device_type || '').toLowerCase();
+            bVal = (b.type || b.device_type || '').toLowerCase();
+            break;
+          case 'ip':
+            aVal = (a.ip_address || a.ip || '');
+            bVal = (b.ip_address || b.ip || '');
+            break;
+          case 'mac':
+            aVal = (a.mac_address || a.mac || '').toLowerCase();
+            bVal = (b.mac_address || b.mac || '').toLowerCase();
+            break;
+          case 'connection':
+            aVal = (a.connection_type || a.connection || '').toLowerCase();
+            bVal = (b.connection_type || b.connection || '').toLowerCase();
+            break;
+          case 'signal':
+            aVal = a.signal_strength ?? a.signal ?? 0;
+            bVal = b.signal_strength ?? b.signal ?? 0;
+            break;
+          case 'usage':
+            aVal = a.data_usage ?? a.usage_bytes ?? 0;
+            bVal = b.data_usage ?? b.usage_bytes ?? 0;
+            break;
+          default:
+            aVal = ''; bVal = '';
+        }
+        if (typeof aVal === 'string') {
+          return sortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        }
+        return sortAsc ? aVal - bVal : bVal - aVal;
+      });
+
+      renderDevices();
+    }
+
+    function renderDevices() {
+      const tbody = document.getElementById('devicesBody');
+      const countLabel = document.getElementById('deviceCountLabel');
+
+      countLabel.textContent = `${filteredDevices.length} device${filteredDevices.length !== 1 ? 's' : ''}`;
+
+      if (filteredDevices.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No devices found</td></tr>';
+        return;
+      }
+
+      let html = '';
+      filteredDevices.forEach(d => {
+        let conn = d.connection_type || d.connection || '—';
+        const isOffline = conn.toUpperCase() === 'NOT_APPLICABLE' || conn.toUpperCase() === 'OFFLINE' || d.connected === false || d.status === 'offline';
+        if (isOffline) {
+          conn = 'Offline';
+        }
+
+        const isOnline = !isOffline && (d.status === 'online' || d.online === true || (d.ip != null && !d.paused));
+        const isPaused = d.paused === true;
+        const isPrioritized = d.prioritized === true;
+        const name = d.name || d.friendly_name || 'Unknown Device';
+        const type = d.type || d.device_type || 'unknown';
+        const typeKey = mapDeviceType(type);
+        const ip = d.ip_address || d.ip || '—';
+        const mac = d.mac_address || d.mac || '—';
+        
+        // Signal strength handling (supporting dBm from Nest Wifi and raw % or wired)
+        const rawSignal = d.signal_strength ?? d.signal;
+        const isWired = !isOffline && ((conn || '').toLowerCase() === 'wired' || rawSignal === null || rawSignal === undefined);
+        let signal = 0;
+        if (!isOffline && !isWired && rawSignal !== null && rawSignal !== undefined) {
+          if (rawSignal < 0) {
+            signal = Math.max(5, Math.min(100, Math.round(2 * (rawSignal + 100))));
+          } else {
+            signal = Math.min(100, rawSignal);
+          }
+        }
+
+        const usage = d.usage_mb ? (d.usage_mb * 1024 * 1024) : (d.data_usage ?? d.usage_bytes ?? 0);
+        const deviceId = d.id || d.device_id || mac;
+
+        const rowClass = [
+          isOffline ? 'offline' : '',
+          isPaused ? 'paused' : '',
+          isPrioritized ? 'prioritized' : ''
+        ].filter(Boolean).join(' ');
+
+        let signalCellHtml = '';
+        if (isOffline) {
+          signalCellHtml = '<span style="font-size:0.75rem;color:var(--text-secondary)">—</span>';
+        } else if (isWired) {
+          signalCellHtml = '<span style="font-size:0.75rem;color:var(--accent);font-weight:600">Gigabit Wired</span>';
+        } else {
+          signalCellHtml = `
+            <div class="signal-strength-cell">
+              <div class="signal-mini-bar"><div class="signal-mini-bar-fill" style="width:${signal}%;background:${signalColor(signal)}"></div></div>
+              <span style="font-size:0.75rem;color:var(--text-secondary)">${signal}%</span>
+            </div>`;
+        }
+
+        html += `<tr class="${rowClass}">
+          <td><span class="device-status-dot ${isOnline ? 'online' : 'offline'}" title="${isOnline ? 'Online' : 'Offline'}"></span></td>
+          <td><div class="device-name-cell">${DEVICE_ICONS[typeKey]}<span class="device-name-text">${escapeHTML(name)}</span></div></td>
+          <td>${escapeHTML(type)}</td>
+          <td><code style="font-size:0.8rem;color:${isOffline ? 'var(--text-secondary)' : 'var(--accent)'}">${escapeHTML(ip)}</code></td>
+          <td style="color:var(--text-secondary);font-size:0.8rem">${escapeHTML(mac)}</td>
+          <td><span style="${isOffline ? 'color:var(--text-secondary);font-style:italic' : ''}">${escapeHTML(conn)}</span></td>
+          <td>${signalCellHtml}</td>
+          <td>${formatBytes(usage)}</td>
+          <td>
+            <div class="actions-cell">
+              <button class="btn btn-sm ${isPaused ? 'btn-primary' : 'btn-danger'}"
+                onclick="confirmAction('${isPaused ? 'Unpause' : 'Pause'} Device', '${isPaused ? 'Resume' : 'Pause'} internet access for ${escapeHTML(name)}?', () => pauseDevice('${deviceId}', ${!isPaused}))"
+                title="${isPaused ? 'Unpause' : 'Pause'} device"
+                aria-label="${isPaused ? 'Unpause' : 'Pause'} ${escapeHTML(name)}">
+                ${isPaused ? '▶' : '⏸'}
+              </button>
+              <div class="priority-dropdown">
+                <button class="btn btn-sm" onclick="togglePriorityMenu(this)" title="Prioritize device" aria-label="Prioritize ${escapeHTML(name)}">★</button>
+                <div class="priority-menu">
+                  <button onclick="prioritizeDevice('${deviceId}', 1)">1 hour</button>
+                  <button onclick="prioritizeDevice('${deviceId}', 2)">2 hours</button>
+                  <button onclick="prioritizeDevice('${deviceId}', 4)">4 hours</button>
+                  <button onclick="prioritizeDevice('${deviceId}', 6)">6 hours</button>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>`;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    /* ==========================================================
+       PRIORITY DROPDOWN
+       ========================================================== */
+    function togglePriorityMenu(btn) {
+      const menu = btn.nextElementSibling;
+      const isOpen = menu.classList.contains('open');
+      closeAllPriorityMenus();
+      if (!isOpen) menu.classList.add('open');
+    }
+
+    function closeAllPriorityMenus() {
+      document.querySelectorAll('.priority-menu.open').forEach(m => m.classList.remove('open'));
+    }
+
+    // Close on outside click
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.priority-dropdown')) {
+        closeAllPriorityMenus();
+      }
+    });
+
+    /* ==========================================================
+       API ACTIONS
+       ========================================================== */
+    async function pauseDevice(deviceId, paused) {
+      try {
+        const res = await fetch(`${API_BASE}/api/devices/${deviceId}/pause`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ paused })
+        });
+        if (!res.ok) throw new Error(`${res.status}`);
+        showToast(`Device ${paused ? 'paused' : 'unpaused'} successfully`, 'success');
+        fetchData();
+      } catch (err) {
+        showToast(`Failed to ${paused ? 'pause' : 'unpause'} device`, 'error');
+      }
+    }
+
+    async function prioritizeDevice(deviceId, hours) {
+      closeAllPriorityMenus();
+      try {
+        const res = await fetch(`${API_BASE}/api/devices/${deviceId}/prioritize`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ duration_hours: hours })
+        });
+        if (!res.ok) throw new Error(`${res.status}`);
+        showToast(`Device prioritized for ${hours} hour${hours > 1 ? 's' : ''}`, 'success');
+        fetchData();
+      } catch (err) {
+        showToast('Failed to prioritize device', 'error');
+      }
+    }
+
+    async function restartAP(apId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/mesh/${apId}/restart`, {
+          method: 'POST'
+        });
+        if (!res.ok) throw new Error(`${res.status}`);
+        showToast('Node restart initiated', 'success');
+      } catch (err) {
+        showToast('Failed to restart node', 'error');
+      }
+    }
+
+    async function restartNetwork() {
+      try {
+        const res = await fetch(`${API_BASE}/api/restart`, { method: 'POST' });
+        if (!res.ok) throw new Error(`${res.status}`);
+        showToast('Network restart initiated. Reconnecting…', 'warning');
+      } catch (err) {
+        showToast('Failed to restart network', 'error');
+      }
+    }
+
+    async function toggleGuestNetwork() {
+      try {
+        const res = await fetch(`${API_BASE}/api/guest_network/toggle`, { method: 'POST' });
+        if (!res.ok) throw new Error(`${res.status}`);
+        const data = await res.json();
+        const enabled = data.enabled ?? data.guest_network_enabled;
+        showToast(`Guest network ${enabled ? 'enabled' : 'disabled'}`, 'success');
+        updateGuestStatus(enabled);
+      } catch (err) {
+        showToast('Failed to toggle guest network', 'error');
+      }
+    }
+
+    function updateGuestStatus(enabled) {
+      const el = document.getElementById('guestStatus');
+      if (enabled === true) {
+        el.innerHTML = '<span class="status-dot" style="width:6px;height:6px"></span><span>Guest: Enabled</span>';
+      } else if (enabled === false) {
+        el.innerHTML = '<span class="status-dot offline" style="width:6px;height:6px"></span><span>Guest: Disabled</span>';
+      }
+    }
+
+    /* ==========================================================
+       SPEED TEST
+       ========================================================== */
+    async function runSpeedTest() {
+      const btn = document.getElementById('runSpeedBtn');
+      const origHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Running…';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/speedtest/run`, { method: 'POST' });
+        if (!res.ok) throw new Error(`${res.status}`);
+        const data = await res.json();
+        const st = data.speed_test || data;
+        const dl = st.download_mbps ?? st.download_speed ?? st.download ?? 0;
+        const ul = st.upload_mbps ?? st.upload_speed ?? st.upload ?? 0;
+
+        updateSpeedTest(st);
+        showResultModal('Speed Test Complete', `
+          <div style="display:flex;gap:2rem;justify-content:center;margin:1rem 0">
+            <div style="text-align:center">
+              <div style="font-size:var(--fs-large);font-weight:var(--fw-bold);color:var(--accent)">${dl.toFixed(1)}</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary)">Download Mbps</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:var(--fs-large);font-weight:var(--fw-bold);color:var(--accent)">${ul.toFixed(1)}</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary)">Upload Mbps</div>
+            </div>
+          </div>
+        `);
+        showToast('Speed test completed!', 'success');
+      } catch (err) {
+        showToast('Speed test failed', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHTML;
+      }
+    }
+
+    /* ==========================================================
+       AUTO-REFRESH
+       ========================================================== */
+    function startAutoRefresh() {
+      stopAutoRefresh();
+      if (autoRefreshEnabled) {
+        autoRefreshTimer = setInterval(fetchData, REFRESH_INTERVAL);
+      }
+    }
+
+    function stopAutoRefresh() {
+      if (autoRefreshTimer) {
+        clearInterval(autoRefreshTimer);
+        autoRefreshTimer = null;
+      }
+    }
+
+    document.getElementById('autoRefreshToggle').addEventListener('change', function () {
+      autoRefreshEnabled = this.checked;
+      if (autoRefreshEnabled) {
+        startAutoRefresh();
+        showToast('Auto-refresh enabled', 'info');
+      } else {
+        stopAutoRefresh();
+        showToast('Auto-refresh disabled', 'info');
+      }
+    });
+
+    /* ==========================================================
+       INIT
+       ========================================================== */
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchData();
+      startAutoRefresh();
+    });
+  </script>
+</body>
+</html>

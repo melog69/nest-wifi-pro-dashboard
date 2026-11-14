@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# Sensitive Environment Variables & Credentials
+.env
+.env.*
+!.env.example
+
+# Logs and databases
+*.log
+*.sqlite
+*.sqlite3
+
+# Operating System
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+debug_*.json
+test_*.py
+scratch/
