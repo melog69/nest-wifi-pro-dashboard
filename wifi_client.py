@@ -569,7 +569,10 @@ async def _live_system_status() -> dict[str, Any]:
 
         aps = system.get("access_points", {})
         devices = system.get("devices", {})
-        primary_ip = config.ROUTER_IP or "192.168.1.1"
+        lan_ip = system.get("groupSettings", {}).get("lanSettings", {}).get("ipAddress")
+        if lan_ip:
+            config.ROUTER_IP = lan_ip
+        primary_ip = lan_ip or config.ROUTER_IP or "192.168.1.1"
         public_ip = await _get_public_ip()
         isp_info = await _get_isp_info(public_ip)
 
@@ -623,6 +626,10 @@ async def _live_access_points() -> dict[str, Any]:
             if target_ap:
                 ap_dev_counts[target_ap] = ap_dev_counts.get(target_ap, 0) + 1
 
+        lan_ip = system.get("groupSettings", {}).get("lanSettings", {}).get("ipAddress")
+        if lan_ip:
+            config.ROUTER_IP = lan_ip
+
         aps = []
         for ap_id, ap_data in aps_raw.items():
             props = ap_data.get("accessPointProperties", {})
@@ -640,12 +647,15 @@ async def _live_access_points() -> dict[str, Any]:
             )
 
             ap_ip = props.get("ipAddress") or ""
-            is_primary = (
-                props.get("primaryAp")
-                or ap_ip == config.ROUTER_IP
-                or ap_ip == "192.168.1.1"
-                or ap_data.get("role") == "PRIMARY"
+            is_primary = bool(
+                props.get("primaryAp") is True
+                or ap_data.get("role") in ["PRIMARY", "ROOT", "ROOT_AP"]
+                or (lan_ip and ap_ip == lan_ip)
+                or (config.ROUTER_IP and ap_ip == config.ROUTER_IP)
+                or ap_ip in ["192.168.1.1", "192.168.86.1"]
             )
+            if is_primary and ap_ip:
+                config.ROUTER_IP = ap_ip
             firmware = (
                 props.get("firmwareVersion")
                 or props.get("softwareVersion")
@@ -1014,6 +1024,8 @@ _SETTINGS_STORE: dict[str, Any] = {
     },
     "dhcp": {
         "enabled": True,
+        "router_ip": config.ROUTER_IP or "192.168.1.1",
+        "subnet_mask": "255.255.255.0",
         "start_ip": "192.168.1.100",
         "end_ip": "192.168.1.200",
         "lease_time_hours": 24,
@@ -1172,7 +1184,13 @@ async def get_settings(force_refresh: bool = False) -> dict[str, Any]:
                         )
                         _SETTINGS_STORE["wifi"]["ssid"] = ssid
 
-                        # 3. DHCP Pool, UPnP, WPA3
+                        # 3. Router IP, DHCP Pool, UPnP, WPA3
+                        router_ip = lan_settings.get("ipAddress")
+                        if router_ip:
+                            config.ROUTER_IP = router_ip
+                            _SETTINGS_STORE["dhcp"]["router_ip"] = router_ip
+                        if lan_settings.get("netmask"):
+                            _SETTINGS_STORE["dhcp"]["subnet_mask"] = lan_settings.get("netmask")
                         if lan_settings.get("dhcpPoolBegin"):
                             _SETTINGS_STORE["dhcp"]["start_ip"] = lan_settings.get("dhcpPoolBegin")
                         if lan_settings.get("dhcpPoolEnd"):

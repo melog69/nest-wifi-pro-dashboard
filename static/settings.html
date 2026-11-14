@@ -661,6 +661,16 @@
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
+              <span class="form-label">Main Node Gateway IP</span>
+              <span class="form-hint">Auto-discovered LAN IP address for your primary Nest Wifi Pro node</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <input class="form-input mono" id="dhcp_router_ip" type="text" placeholder="192.168.1.1" value="192.168.1.1" readonly style="background:var(--card-subtle);cursor:default">
+              <span class="badge badge-green" style="white-space:nowrap;padding:0.3rem 0.6rem;font-size:0.75rem">Auto-Discovered</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
               <span class="form-label">DHCP Enabled</span>
               <span class="form-hint">Assign IP addresses automatically to connected devices</span>
             </div>
@@ -1233,6 +1243,7 @@
       }
       // DHCP
       if (s.dhcp) {
+        setVal('dhcp_router_ip', s.dhcp.router_ip || '192.168.1.1');
         setChecked('dhcp_enabled', s.dhcp.enabled !== false);
         setVal('dhcp_start', s.dhcp.start_ip || '192.168.1.100');
         setVal('dhcp_end', s.dhcp.end_ip || '192.168.1.200');
