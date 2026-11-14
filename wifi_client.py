@@ -29,7 +29,9 @@ from __future__ import annotations
 import asyncio
 import datetime
 import hashlib
+import json
 import logging
+import os
 import random
 import time
 from typing import Any
@@ -348,6 +350,8 @@ def _demo_system_status() -> dict[str, Any]:
         "system_id": _DEMO_SYSTEM_ID,
         "network_name": "NestWifi_Demo",
         "status": "online",
+        "guest_network_enabled": False,
+        "guest_network_ssid": "",
         "wan": {
             "ip_address": "73.142.215.98",
             "gateway": "73.142.215.1",
@@ -551,6 +555,8 @@ async def _live_system_status() -> dict[str, Any]:
             system.get("groupSettings", {}).get("wlanSettings", {}).get("privateSsid")
             or "Google Nest Wifi Pro"
         )
+        guest_settings = system.get("groupSettings", {}).get("guestWirelessSettings", {})
+        guest_enabled = bool(guest_settings.get("ssid")) or bool(guest_settings.get("enabled", False))
 
         aps = system.get("access_points", {})
         devices = system.get("devices", {})
@@ -569,6 +575,8 @@ async def _live_system_status() -> dict[str, Any]:
             "isp_city": isp_info.get("city", ""),
             "isp_region": isp_info.get("region", ""),
             "isp_country": isp_info.get("country", ""),
+            "guest_network_enabled": guest_enabled,
+            "guest_network_ssid": guest_settings.get("ssid", ""),
             "wan": {
                 "ip_address": public_ip,
                 "gateway": primary_ip,
@@ -1032,6 +1040,32 @@ _SETTINGS_STORE: dict[str, Any] = {
 }
 
 
+_SETTINGS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings_store.json")
+
+# Load persisted settings if available
+if os.path.exists(_SETTINGS_FILE):
+    try:
+        with open(_SETTINGS_FILE, "r", encoding="utf-8") as _f:
+            _loaded = json.load(_f)
+            if isinstance(_loaded, dict):
+                for _sec, _val in _loaded.items():
+                    if _sec in _SETTINGS_STORE and isinstance(_val, dict):
+                        _SETTINGS_STORE[_sec].update(_val)
+                    elif _sec in _SETTINGS_STORE:
+                        _SETTINGS_STORE[_sec] = _val
+    except Exception as _e:
+        logger.warning("Could not load settings_store.json: %s", _e)
+
+
+def _save_settings_store() -> None:
+    """Save current _SETTINGS_STORE to disk."""
+    try:
+        with open(_SETTINGS_FILE, "w", encoding="utf-8") as f:
+            json.dump(_SETTINGS_STORE, f, indent=2)
+    except Exception as exc:
+        logger.warning("Could not save settings_store.json: %s", exc)
+
+
 _PORT_SERVICES: dict[int, str] = {
     21: "FTP",
     22: "SSH",
@@ -1075,25 +1109,37 @@ async def get_settings(force_refresh: bool = False) -> dict[str, Any]:
             try:
                 client = await _get_gw_client()
                 if client:
-                    systems = await client.get_systems()
-                    if systems:
-                        sid = list(systems.keys())[0]
-                        sys = systems[sid]
-                        gs = sys.get("groupSettings", {})
+                    await client.connect()
+                    url = "https://googlehomefoyer-pa.googleapis.com/v2/groups?prettyPrint=false"
+                    headers = {
+                        "Authorization": f"Bearer {client._api_token}",
+                        "Content-Type": "application/json; charset=utf-8",
+                    }
+                    resp = await client.get_api(url, headers=headers)
+                    groups = resp.get("groups", [])
+                    if groups:
+                        group = groups[0]
+                        gid = group.get("id", "")
+                        gs = group.get("groupSettings", {})
                         wan_settings = gs.get("wanSettings", {})
                         lan_settings = gs.get("lanSettings", {})
                         wlan_settings = gs.get("wlanSettings", {})
                         wpa3_settings = gs.get("wpa3Settings", {})
-                        raw_devices = sys.get("devices", {})
 
-                        # Build device lookups by ID and IP
+                        # Quick device stations fetch
                         id_to_dev: dict[str, dict] = {}
                         ip_to_dev: dict[str, dict] = {}
-                        for did, d in raw_devices.items():
-                            id_to_dev[did] = d
-                            if d.get("ipAddress"):
-                                ip_to_dev[d.get("ipAddress")] = d
+                        try:
+                            devs_resp = await client.get_devices(gid)
+                            stations = devs_resp.get("stations", []) if devs_resp else []
+                            for s in stations:
+                                id_to_dev[s.get("id", "")] = s
+                                if s.get("ipAddress"):
+                                    ip_to_dev[s["ipAddress"]] = s
+                        except Exception:
+                            pass
 
+                        # Merge with any cached devices
                         cached_devs = _cache.get("devices")
                         if cached_devs and isinstance(cached_devs, dict):
                             for d in cached_devs.get("devices", []):
@@ -1140,7 +1186,7 @@ async def get_settings(force_refresh: bool = False) -> dict[str, Any]:
                                     or dev.get("automaticFriendlyName")
                                     or dev.get("dhcpHostname")
                                     or dev.get("name")
-                                    or f"Station {res_ip.split('.')[-1]}"
+                                    or f"Device {res_ip.split('.')[-1]}"
                                 )
                                 mac = dev.get("macAddress") or dev.get("mac") or ""
                                 live_reservations.append({
@@ -1206,6 +1252,7 @@ async def get_settings(force_refresh: bool = False) -> dict[str, Any]:
                             _SETTINGS_STORE["ports"]["rules"] = live_rules
 
                         _settings_synced_from_router = True
+                        _save_settings_store()
             except Exception as exc:
                 logger.exception("Failed to sync live settings from router: %s", exc)
 
@@ -1218,6 +1265,7 @@ async def update_settings(section: str, updates: dict[str, Any]) -> dict[str, An
         return {"ok": False, "error": f"Unknown settings section: {section}"}
 
     _SETTINGS_STORE[section].update(updates)
+    _save_settings_store()
     return {
         "ok": True,
         "demo": config.is_demo_mode(),
@@ -1234,8 +1282,10 @@ async def add_dhcp_reservation(mac: str, ip: str, hostname: str) -> dict[str, An
     for r in reservations:
         if r["mac"].lower() == mac.lower():
             r.update({"ip": ip, "hostname": hostname})
+            _save_settings_store()
             return {"ok": True, "message": "Reservation updated", "reservations": reservations}
     reservations.append({"mac": mac, "ip": ip, "hostname": hostname, "enabled": True})
+    _save_settings_store()
     return {"ok": True, "message": "Reservation added", "reservations": reservations}
 
 
@@ -1246,6 +1296,7 @@ async def remove_dhcp_reservation(mac: str) -> dict[str, Any]:
         r for r in _SETTINGS_STORE["dhcp"]["reservations"] if r["mac"].lower() != mac.lower()
     ]
     removed = before - len(_SETTINGS_STORE["dhcp"]["reservations"])
+    _save_settings_store()
     return {"ok": True, "removed": removed, "reservations": _SETTINGS_STORE["dhcp"]["reservations"]}
 
 
@@ -1256,6 +1307,7 @@ async def add_port_rule(rule: dict[str, Any]) -> dict[str, Any]:
         return {"ok": False, "error": f"Missing fields: {required - set(rule.keys())}"}
     rule.setdefault("enabled", True)
     _SETTINGS_STORE["ports"]["rules"].append(rule)
+    _save_settings_store()
     return {"ok": True, "message": "Port rule added", "rules": _SETTINGS_STORE["ports"]["rules"]}
 
 
@@ -1265,4 +1317,5 @@ async def remove_port_rule(idx: int) -> dict[str, Any]:
     if idx < 0 or idx >= len(rules):
         return {"ok": False, "error": f"Rule index {idx} out of range"}
     removed = rules.pop(idx)
+    _save_settings_store()
     return {"ok": True, "message": f"Rule '{removed['name']}' removed", "rules": rules}

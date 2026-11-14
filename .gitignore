@@ -45,3 +45,4 @@ desktop.ini
 debug_*.json
 test_*.py
 scratch/
+settings_store.json

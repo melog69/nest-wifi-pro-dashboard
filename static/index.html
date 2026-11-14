@@ -1433,8 +1433,8 @@
             Toggle Guest Network
           </button>
           <div class="guest-status" id="guestStatus">
-            <span class="status-dot offline"></span>
-            <span>Guest: Unknown</span>
+            <span class="status-dot offline" style="width:6px;height:6px"></span>
+            <span>Guest: Disabled</span>
           </div>
         </div>
       </div>
@@ -1812,6 +1812,11 @@
       document.getElementById('uptime').textContent = data.uptime_human || formatUptime(data.uptime_seconds || data.uptime);
       document.getElementById('deviceCount').innerHTML = `<span class="chip chip-blue" style="font-size:1.15rem;font-weight:700;padding:0.25rem 0.85rem">${data.total_devices ?? data.connected_devices ?? data.device_count ?? (allDevices ? allDevices.length : '—')}</span>`;
       document.getElementById('networkLoad').innerHTML = `<span class="chip chip-teal" style="font-size:0.85rem">${escapeHTML(data.network_load || 'Normal')}</span>`;
+      if (typeof data.guest_network_enabled !== 'undefined') {
+        updateGuestStatus(data.guest_network_enabled);
+      } else {
+        updateGuestStatus(false);
+      }
     }
 
     /* ==========================================================
@@ -2227,9 +2232,10 @@
 
     function updateGuestStatus(enabled) {
       const el = document.getElementById('guestStatus');
+      if (!el) return;
       if (enabled === true) {
         el.innerHTML = '<span class="status-dot" style="width:6px;height:6px"></span><span>Guest: Enabled</span>';
-      } else if (enabled === false) {
+      } else {
         el.innerHTML = '<span class="status-dot offline" style="width:6px;height:6px"></span><span>Guest: Disabled</span>';
       }
     }

@@ -233,6 +233,18 @@ def api_restart_network():
 
 _guest_network_state = {"enabled": False}
 
+@app.route("/api/guest_network", methods=["GET"])
+def api_get_guest_network():
+    """Get current guest network state."""
+    try:
+        status = _run_async(wifi_client.get_system_status())
+        enabled = status.get("guest_network_enabled", False)
+        _guest_network_state["enabled"] = enabled
+        return jsonify({"ok": True, "enabled": enabled}), 200
+    except Exception as exc:
+        return jsonify({"ok": True, "enabled": _guest_network_state["enabled"]}), 200
+
+
 @app.route("/api/guest_network/toggle", methods=["POST"])
 def api_toggle_guest_network():
     """Toggle guest network state."""
