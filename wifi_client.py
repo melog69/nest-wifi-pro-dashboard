@@ -1032,29 +1032,182 @@ _SETTINGS_STORE: dict[str, Any] = {
 }
 
 
-async def get_settings() -> dict[str, Any]:
-    """Return current dashboard settings."""
+_PORT_SERVICES: dict[int, str] = {
+    21: "FTP",
+    22: "SSH",
+    53: "DNS",
+    80: "HTTP Web",
+    81: "Nginx / Admin",
+    443: "HTTPS Web",
+    1194: "OpenVPN",
+    3000: "Dev Web (3000)",
+    32400: "Plex Media Server",
+    32401: "Plex Alt (32401)",
+    5000: "Flask Web (5000)",
+    5050: "Web App (5050)",
+    7125: "Moonraker / 3D Printer",
+    7878: "Radarr",
+    8000: "Dev Server (8000)",
+    8080: "HTTP Alt (8080)",
+    8096: "Jellyfin Server",
+    8443: "HTTPS Alt (8443)",
+    8686: "Lidarr",
+    8920: "Jellyfin HTTPS",
+    8989: "Sonarr",
+    9091: "Transmission",
+    25565: "Minecraft Server",
+    27015: "Steam / Source",
+}
+
+_settings_synced_from_router: bool = False
+
+
+async def get_settings(force_refresh: bool = False) -> dict[str, Any]:
+    """Return current dashboard settings. Syncs live settings from router on first run or force."""
+    global _settings_synced_from_router
     if not config.is_demo_mode():
-        # Try to fetch live DNS from the router system status
-        try:
-            client = await _get_gw_client()
-            systems = await client.get_systems()
-            if systems:
-                sid = list(systems.keys())[0]
-                sys = systems[sid]
-                wan_settings = sys.get("groupSettings", {}).get("wanSettings", {})
-                dns_servers = wan_settings.get("dnsConfig", {}).get("servers", [])
-                if len(dns_servers) >= 1:
-                    _SETTINGS_STORE["dns"]["primary"] = dns_servers[0]
-                if len(dns_servers) >= 2:
-                    _SETTINGS_STORE["dns"]["secondary"] = dns_servers[1]
-                ssid = (
-                    sys.get("groupSettings", {}).get("wlanSettings", {}).get("privateSsid")
-                    or _SETTINGS_STORE["wifi"]["ssid"]
-                )
-                _SETTINGS_STORE["wifi"]["ssid"] = ssid
-        except Exception:
-            pass
+        needs_sync = (
+            force_refresh
+            or not _settings_synced_from_router
+            or (not _SETTINGS_STORE["dhcp"]["reservations"] and not _SETTINGS_STORE["ports"]["rules"])
+        )
+        if needs_sync:
+            try:
+                client = await _get_gw_client()
+                if client:
+                    systems = await client.get_systems()
+                    if systems:
+                        sid = list(systems.keys())[0]
+                        sys = systems[sid]
+                        gs = sys.get("groupSettings", {})
+                        wan_settings = gs.get("wanSettings", {})
+                        lan_settings = gs.get("lanSettings", {})
+                        wlan_settings = gs.get("wlanSettings", {})
+                        wpa3_settings = gs.get("wpa3Settings", {})
+                        raw_devices = sys.get("devices", {})
+
+                        # Build device lookups by ID and IP
+                        id_to_dev: dict[str, dict] = {}
+                        ip_to_dev: dict[str, dict] = {}
+                        for did, d in raw_devices.items():
+                            id_to_dev[did] = d
+                            if d.get("ipAddress"):
+                                ip_to_dev[d.get("ipAddress")] = d
+
+                        cached_devs = _cache.get("devices")
+                        if cached_devs and isinstance(cached_devs, dict):
+                            for d in cached_devs.get("devices", []):
+                                if d.get("id"):
+                                    id_to_dev.setdefault(d["id"], d)
+                                if d.get("ip"):
+                                    ip_to_dev.setdefault(d["ip"], d)
+
+                        # 1. DNS
+                        dns_servers = wan_settings.get("dnsConfig", {}).get("servers", [])
+                        if len(dns_servers) >= 1:
+                            _SETTINGS_STORE["dns"]["primary"] = dns_servers[0]
+                        if len(dns_servers) >= 2:
+                            _SETTINGS_STORE["dns"]["secondary"] = dns_servers[1]
+                        _SETTINGS_STORE["dns"]["mode"] = "custom" if dns_servers else "auto"
+
+                        # 2. Wi-Fi SSID
+                        ssid = (
+                            wlan_settings.get("privateSsid")
+                            or _SETTINGS_STORE["wifi"]["ssid"]
+                        )
+                        _SETTINGS_STORE["wifi"]["ssid"] = ssid
+
+                        # 3. DHCP Pool, UPnP, WPA3
+                        if lan_settings.get("dhcpPoolBegin"):
+                            _SETTINGS_STORE["dhcp"]["start_ip"] = lan_settings.get("dhcpPoolBegin")
+                        if lan_settings.get("dhcpPoolEnd"):
+                            _SETTINGS_STORE["dhcp"]["end_ip"] = lan_settings.get("dhcpPoolEnd")
+                        if "upnpEnabled" in lan_settings:
+                            _SETTINGS_STORE["security"]["upnp_enabled"] = bool(lan_settings.get("upnpEnabled"))
+                        if "enabled" in wpa3_settings:
+                            _SETTINGS_STORE["security"]["wpa3_enabled"] = bool(wpa3_settings.get("enabled"))
+
+                        # 4. DHCP IP Reservations
+                        static_mappings = lan_settings.get("staticIpMappings", [])
+                        if static_mappings:
+                            live_reservations = []
+                            for m in static_mappings:
+                                st_id = m.get("stationId", "")
+                                res_ip = m.get("ipAddress", "")
+                                dev = id_to_dev.get(st_id) or ip_to_dev.get(res_ip) or {}
+                                hostname = (
+                                    dev.get("friendlyName")
+                                    or dev.get("automaticFriendlyName")
+                                    or dev.get("dhcpHostname")
+                                    or dev.get("name")
+                                    or f"Station {res_ip.split('.')[-1]}"
+                                )
+                                mac = dev.get("macAddress") or dev.get("mac") or ""
+                                live_reservations.append({
+                                    "mac": mac or (st_id[:17] if st_id else "00:00:00:00:00:00"),
+                                    "ip": res_ip,
+                                    "hostname": hostname,
+                                    "enabled": True,
+                                })
+                            _SETTINGS_STORE["dhcp"]["reservations"] = live_reservations
+
+                        # 5. Port Forwarding Rules
+                        pf_mappings = wan_settings.get("portForwardingMappings", [])
+                        exposed_ports = wan_settings.get("exposedPorts", [])
+                        if pf_mappings:
+                            live_rules = []
+                            for idx, pf in enumerate(pf_mappings):
+                                wan_start = pf.get("wanStartPort", 0)
+                                wan_end = pf.get("wanEndPort", 0)
+                                lan_start = pf.get("lanStartPort", 0)
+                                lan_end = pf.get("lanEndPort", 0)
+                                int_ip = pf.get("ipAddress", "")
+                                tcp = bool(pf.get("forwardTcp"))
+                                udp = bool(pf.get("forwardUdp"))
+                                proto = "TCP/UDP" if (tcp and udp) else ("TCP" if tcp else "UDP")
+
+                                exp_sid = ""
+                                if idx < len(exposed_ports):
+                                    exp_sid = exposed_ports[idx].get("stationId", "")
+
+                                dev = ip_to_dev.get(int_ip) or id_to_dev.get(exp_sid) or {}
+                                dev_name = (
+                                    dev.get("friendlyName")
+                                    or dev.get("automaticFriendlyName")
+                                    or dev.get("dhcpHostname")
+                                    or dev.get("name")
+                                    or ""
+                                )
+
+                                if (not int_ip or int_ip == "0.0.0.0") and (dev.get("ipAddress") or dev.get("ip")):
+                                    int_ip = dev.get("ipAddress") or dev.get("ip")
+
+                                svc = _PORT_SERVICES.get(wan_start) or _PORT_SERVICES.get(lan_start)
+                                if svc and dev_name:
+                                    rule_name = f"{svc} ({dev_name})"
+                                elif svc:
+                                    rule_name = svc
+                                elif dev_name:
+                                    rule_name = f"{dev_name} :{wan_start}"
+                                else:
+                                    rule_name = f"Port {wan_start}"
+
+                                ext_port_val = wan_start if (wan_start == wan_end or not wan_end) else f"{wan_start}-{wan_end}"
+                                int_port_val = lan_start if (lan_start == lan_end or not lan_end) else f"{lan_start}-{lan_end}"
+
+                                live_rules.append({
+                                    "name": rule_name,
+                                    "protocol": proto,
+                                    "external_port": ext_port_val,
+                                    "internal_ip": int_ip or "0.0.0.0",
+                                    "internal_port": int_port_val,
+                                    "enabled": True,
+                                })
+                            _SETTINGS_STORE["ports"]["rules"] = live_rules
+
+                        _settings_synced_from_router = True
+            except Exception as exc:
+                logger.exception("Failed to sync live settings from router: %s", exc)
 
     return {"ok": True, "demo": config.is_demo_mode(), "settings": _SETTINGS_STORE}
 

@@ -265,7 +265,8 @@ def api_local_info():
 def api_get_settings():
     """Return all dashboard/network settings."""
     try:
-        data = _run_async(wifi_client.get_settings())
+        force = request.args.get("refresh", "").lower() in ("1", "true", "yes")
+        data = _run_async(wifi_client.get_settings(force_refresh=force))
         return jsonify(data), 200
     except Exception as exc:
         logger.exception("GET /api/settings failed")

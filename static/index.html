@@ -1481,12 +1481,11 @@
                 <th onclick="sortDevices('mac')" aria-sort="none">MAC Address <span class="sort-icon">▲</span></th>
                 <th onclick="sortDevices('connection')" aria-sort="none">Connection <span class="sort-icon">▲</span></th>
                 <th onclick="sortDevices('signal')" aria-sort="none">Signal <span class="sort-icon">▲</span></th>
-                <th onclick="sortDevices('usage')" aria-sort="none">Data Usage <span class="sort-icon">▲</span></th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody id="devicesBody">
-              <tr><td colspan="9" class="empty-state">Loading devices…</td></tr>
+              <tr><td colspan="8" class="empty-state">Loading devices…</td></tr>
             </tbody>
           </table>
         </div>
@@ -2000,10 +1999,6 @@
             aVal = a.signal_strength ?? a.signal ?? 0;
             bVal = b.signal_strength ?? b.signal ?? 0;
             break;
-          case 'usage':
-            aVal = a.data_usage ?? a.usage_bytes ?? 0;
-            bVal = b.data_usage ?? b.usage_bytes ?? 0;
-            break;
           default:
             aVal = ''; bVal = '';
         }
@@ -2023,7 +2018,7 @@
       countLabel.textContent = `${filteredDevices.length} device${filteredDevices.length !== 1 ? 's' : ''}`;
 
       if (filteredDevices.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No devices found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No devices found</td></tr>';
         return;
       }
 
@@ -2056,7 +2051,6 @@
           }
         }
 
-        const usage = d.usage_mb ? (d.usage_mb * 1024 * 1024) : (d.data_usage ?? d.usage_bytes ?? 0);
         const deviceId = d.id || d.device_id || mac;
 
         const rowClass = [
@@ -2104,7 +2098,6 @@
           <td style="color:var(--text-secondary);font-size:0.8rem">${escapeHTML(mac)}</td>
           <td>${connBadgeHtml}</td>
           <td>${signalCellHtml}</td>
-          <td>${formatBytes(usage)}</td>
           <td>
             <div class="actions-cell">
               <button class="btn btn-sm ${isPaused ? 'btn-primary' : 'btn-danger'}"

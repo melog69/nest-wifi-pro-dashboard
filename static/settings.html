@@ -540,6 +540,10 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         Dashboard
       </a>
+      <button class="back-btn" id="syncBtn" onclick="syncFromRouter()" title="Sync live rules and reservations from your router" style="cursor:pointer;border:1px solid var(--border)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        Sync Router
+      </button>
       <button class="save-btn" id="globalSaveBtn" onclick="saveCurrentSection()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2l11 0 5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         Save Changes
@@ -641,6 +645,11 @@
       <section class="settings-section" id="section-dhcp">
         <div class="section-heading">DHCP &amp; IP Reservations</div>
 
+        <div class="info-banner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Active DHCP reservations and pool settings are loaded directly from your Google Nest Wifi router.
+        </div>
+
         <div class="card">
           <div class="card-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
@@ -737,7 +746,7 @@
 
         <div class="info-banner">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Port forwarding rules allow external internet traffic to reach a specific device on your local network. Use with caution — only open ports you need.
+          Active port forwarding rules are loaded directly from your Google Nest Wifi network.
         </div>
 
         <div class="card">
@@ -1063,6 +1072,32 @@
         applySettingsToUI(settings);
       } catch (err) {
         showToast('Could not load settings: ' + err.message, 'error');
+      }
+    }
+
+    async function syncFromRouter() {
+      const btn = document.getElementById('syncBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Syncing…';
+      }
+      try {
+        const res = await fetch(`${API}/api/settings?refresh=1`);
+        const data = await res.json();
+        if (data.ok && data.settings) {
+          settings = data.settings;
+          applySettingsToUI(settings);
+          showToast('Successfully synced DHCP reservations and port rules from router!', 'success');
+        } else {
+          showToast(data.error || 'Failed to sync from router', 'error');
+        }
+      } catch (err) {
+        showToast('Sync error: ' + err.message, 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> Sync Router`;
+        }
       }
     }
 
