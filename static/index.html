@@ -4,9 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nest Wifi Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
   <style>
     /* ============================================================
-       CSS RESET & VARIABLES
+       GOOGLE HOME MATERIAL 3 PASTEL THEME
        ============================================================ */
     *, *::before, *::after {
       box-sizing: border-box;
@@ -15,34 +19,94 @@
     }
 
     :root {
-      /* Color Scheme */
-      --bg-primary: #0f1923;
-      --bg-card: #1a2736;
-      --bg-card-hover: #1e2e40;
-      --accent: #00bcd4;
-      --accent-dim: rgba(0, 188, 212, 0.15);
-      --success: #4caf50;
-      --warning: #ff9800;
-      --error: #f44336;
-      --text-primary: #e0e0e0;
-      --text-secondary: #9e9e9e;
-      --border: #2a3a4a;
+      /* Google Home Canvas & Surface Colors */
+      --bg-primary: #f8fafd;
+      --bg-card: #ffffff;
+      --bg-card-hover: #ffffff;
+      --bg-subtle: #f1f4f9;
+      --bg-hover: #f1f5fa;
 
-      /* Typography */
-      --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      /* Google Home Material 3 Pastel Color Palette */
+      /* Google Blue */
+      --google-blue: #1a73e8;
+      --google-blue-container: #e8f0fe;
+      --google-blue-text: #1967d2;
+      --google-blue-border: #d2e3fc;
+      --google-blue-hover: #d8e6fd;
+
+      /* Google Green (Mint / Sage) */
+      --google-green: #137333;
+      --google-green-container: #e6f4ea;
+      --google-green-text: #137333;
+      --google-green-border: #ceead6;
+      --google-green-hover: #d4edd9;
+
+      /* Google Yellow / Amber (Warm Sand) */
+      --google-amber: #b06000;
+      --google-amber-container: #fef7e0;
+      --google-amber-text: #b06000;
+      --google-amber-border: #feefc3;
+      --google-amber-hover: #fde8ad;
+
+      /* Google Coral / Red (Soft Blush) */
+      --google-coral: #c5221f;
+      --google-coral-container: #fce8e6;
+      --google-coral-text: #c5221f;
+      --google-coral-border: #fad2cf;
+      --google-coral-hover: #f7c3bf;
+
+      /* Google Purple / Lilac */
+      --google-purple: #8430ce;
+      --google-purple-container: #f3e8fd;
+      --google-purple-text: #7627bb;
+      --google-purple-border: #e8d0fb;
+      --google-purple-hover: #dfbdf9;
+
+      /* Google Teal / Cyan */
+      --google-teal: #00796b;
+      --google-teal-container: #e0f2f1;
+      --google-teal-text: #00796b;
+      --google-teal-border: #b2dfdb;
+      --google-teal-hover: #a2dcd6;
+
+      /* Neutral Container */
+      --google-neutral-container: #f1f3f4;
+      --google-neutral-text: #3c4043;
+      --google-neutral-border: #dadce0;
+
+      /* Functional Aliases */
+      --accent: var(--google-blue);
+      --accent-dim: var(--google-blue-container);
+      --success: var(--google-green);
+      --warning: var(--google-amber);
+      --error: var(--google-coral);
+
+      /* Typography & Neutrals */
+      --text-primary: #1f1f1f;
+      --text-secondary: #5f6368;
+      --text-tertiary: #80868b;
+      --border: #e0e3e7;
+      --border-subtle: #edf1f7;
+
+      --font-stack: 'Google Sans', 'Google Sans Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       --fs-large: 2.5rem;
-      --fs-header: 1.1rem;
+      --fs-header: 1.15rem;
       --fs-body: 0.875rem;
       --fw-bold: 700;
       --fw-semibold: 600;
+      --fw-medium: 500;
 
-      /* Transitions */
-      --transition: 0.2s ease;
-
-      /* Spacing */
+      /* Google Home Elevation & Radii */
+      --radius: 20px;
+      --radius-sm: 12px;
+      --radius-pill: 9999px;
       --gap: 1.25rem;
-      --radius: 12px;
-      --radius-sm: 8px;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+      --shadow-sm: 0 1px 2px rgba(60,64,67,0.06), 0 1px 3px rgba(60,64,67,0.04);
+      --shadow-md: 0 2px 6px rgba(60,64,67,0.08), 0 4px 12px rgba(60,64,67,0.05);
+      --shadow-hover: 0 4px 16px rgba(60,64,67,0.1), 0 8px 24px rgba(60,64,67,0.06);
+      --shadow-modal: 0 16px 40px rgba(60,64,67,0.18), 0 4px 12px rgba(60,64,67,0.08);
     }
 
     html {
@@ -57,26 +121,24 @@
       line-height: 1.6;
       min-height: 100vh;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    /* ============================================================
-       SCROLLBAR STYLING
-       ============================================================ */
+    /* Scrollbar */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: var(--bg-primary); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+    ::-webkit-scrollbar-thumb { background: #dadce0; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #bdc1c6; }
 
-    /* ============================================================
-       LOADING SKELETON ANIMATION
-       ============================================================ */
+    /* Skeleton Loading */
     @keyframes shimmer {
       0% { background-position: -200% 0; }
       100% { background-position: 200% 0; }
     }
 
     .skeleton {
-      background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
+      background: linear-gradient(90deg, #f1f4f9 25%, #e8edf4 50%, #f1f4f9 75%);
       background-size: 200% 100%;
       animation: shimmer 1.5s infinite;
       border-radius: var(--radius-sm);
@@ -84,29 +146,102 @@
       pointer-events: none;
       user-select: none;
     }
-
     .skeleton * { visibility: hidden; }
 
-    /* ============================================================
-       SPINNER
-       ============================================================ */
+    /* Spinner */
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
 
     .spinner {
       display: inline-block;
-      width: 18px;
-      height: 18px;
-      border: 2px solid rgba(255,255,255,0.2);
-      border-top-color: var(--accent);
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(26,115,232,0.2);
+      border-top-color: var(--google-blue);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
       vertical-align: middle;
     }
 
     /* ============================================================
-       HEADER
+       PASTEL PILLS / CHIPS
+       ============================================================ */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      font-weight: 500;
+      line-height: 1.25;
+      white-space: nowrap;
+      transition: background var(--transition);
+    }
+
+    .chip-blue {
+      background: var(--google-blue-container);
+      color: var(--google-blue-text);
+      border: 1px solid var(--google-blue-border);
+    }
+    .chip-blue:hover { background: var(--google-blue-hover); }
+
+    .chip-green {
+      background: var(--google-green-container);
+      color: var(--google-green-text);
+      border: 1px solid var(--google-green-border);
+    }
+    .chip-green:hover { background: var(--google-green-hover); }
+
+    .chip-amber {
+      background: var(--google-amber-container);
+      color: var(--google-amber-text);
+      border: 1px solid var(--google-amber-border);
+    }
+    .chip-amber:hover { background: var(--google-amber-hover); }
+
+    .chip-coral {
+      background: var(--google-coral-container);
+      color: var(--google-coral-text);
+      border: 1px solid var(--google-coral-border);
+    }
+    .chip-coral:hover { background: var(--google-coral-hover); }
+
+    .chip-purple {
+      background: var(--google-purple-container);
+      color: var(--google-purple-text);
+      border: 1px solid var(--google-purple-border);
+    }
+    .chip-purple:hover { background: var(--google-purple-hover); }
+
+    .chip-teal {
+      background: var(--google-teal-container);
+      color: var(--google-teal-text);
+      border: 1px solid var(--google-teal-border);
+    }
+    .chip-teal:hover { background: var(--google-teal-hover); }
+
+    .chip-neutral {
+      background: var(--google-neutral-container);
+      color: var(--google-neutral-text);
+      border: 1px solid var(--google-neutral-border);
+    }
+    .chip-neutral:hover { background: #e8eaed; }
+
+    /* Code styling */
+    code {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 0.8rem;
+      background: var(--bg-subtle);
+      color: var(--google-blue-text);
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* ============================================================
+       HEADER (Google Home Style)
        ============================================================ */
     .header {
       display: flex;
@@ -114,35 +249,43 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 1rem;
-      padding: 1rem 1.5rem;
-      background: linear-gradient(135deg, #152232, #1a2a3d);
+      padding: 0.9rem 1.75rem;
+      background: #ffffff;
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       z-index: 100;
-      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-sm);
     }
 
     .header-left {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.85rem;
+    }
+
+    .header-icon-box {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--google-blue-container);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--google-blue);
+      flex-shrink: 0;
     }
 
     .header-left svg {
-      width: 32px;
-      height: 32px;
-      color: var(--accent);
+      width: 22px;
+      height: 22px;
     }
 
     .header-left h1 {
-      font-size: 1.35rem;
-      font-weight: var(--fw-bold);
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, var(--accent), #4dd0e1);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-size: 1.25rem;
+      font-weight: var(--fw-semibold);
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
     }
 
     .header-right {
@@ -155,28 +298,34 @@
     .status-indicator {
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.45rem;
       font-size: var(--fs-body);
       color: var(--text-secondary);
+      background: var(--bg-subtle);
+      padding: 0.35rem 0.85rem;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-subtle);
     }
 
     .status-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--success);
-      box-shadow: 0 0 6px var(--success);
+      background: var(--google-green);
+      box-shadow: 0 0 0 3px rgba(19, 115, 51, 0.2);
       transition: background var(--transition), box-shadow var(--transition);
+      display: inline-block;
+      vertical-align: middle;
     }
 
     .status-dot.demo {
-      background: var(--warning);
-      box-shadow: 0 0 6px var(--warning);
+      background: var(--google-amber);
+      box-shadow: 0 0 0 3px rgba(176, 96, 0, 0.2);
     }
 
     .status-dot.offline {
-      background: var(--error);
-      box-shadow: 0 0 6px var(--error);
+      background: var(--google-coral);
+      box-shadow: 0 0 0 3px rgba(197, 34, 31, 0.2);
     }
 
     .last-refresh {
@@ -185,119 +334,136 @@
     }
 
     /* ============================================================
-       BUTTONS
+       BUTTONS (Material 3 Pill Buttons)
        ============================================================ */
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
-      padding: 0.5rem 1rem;
+      gap: 0.45rem;
+      padding: 0.5rem 1.15rem;
       border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
+      border-radius: var(--radius-pill);
       background: var(--bg-card);
       color: var(--text-primary);
       font-size: var(--fs-body);
       font-family: var(--font-stack);
+      font-weight: var(--fw-medium);
       cursor: pointer;
       transition: all var(--transition);
-      white-space: nowrap;
+      user-select: none;
+      line-height: 1.3;
     }
 
-    .btn:hover { background: var(--bg-card-hover); border-color: var(--accent); }
-    .btn:active { transform: scale(0.97); }
-    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #0f1923;
-      border-color: var(--accent);
-      font-weight: var(--fw-semibold);
+    .btn:hover {
+      background: var(--bg-hover);
+      border-color: #cbd5e1;
+      box-shadow: var(--shadow-sm);
     }
 
-    .btn-primary:hover { background: #00acc1; border-color: #00acc1; }
-
-    .btn-danger {
-      border-color: var(--error);
-      color: var(--error);
-    }
-
-    .btn-danger:hover { background: rgba(244,67,54,0.15); }
-
-    .btn-warning {
-      border-color: var(--warning);
-      color: var(--warning);
-    }
-
-    .btn-warning:hover { background: rgba(255,152,0,0.15); }
-
-    .btn-sm {
-      padding: 0.3rem 0.65rem;
-      font-size: 0.8rem;
+    .btn:active {
+      transform: scale(0.98);
     }
 
     .btn:disabled {
-      opacity: 0.5;
+      opacity: 0.55;
       cursor: not-allowed;
-      pointer-events: none;
+      transform: none !important;
     }
 
-    /* ============================================================
-       AUTO-REFRESH TOGGLE
-       ============================================================ */
+    .btn-sm {
+      padding: 0.35rem 0.85rem;
+      font-size: 0.8rem;
+    }
+
+    .btn-primary {
+      background: var(--google-blue-container);
+      color: var(--google-blue-text);
+      border-color: var(--google-blue-border);
+      font-weight: var(--fw-semibold);
+    }
+    .btn-primary:hover {
+      background: var(--google-blue-hover);
+      border-color: #bad3f8;
+      box-shadow: 0 1px 3px rgba(26,115,232,0.2);
+    }
+
+    .btn-danger {
+      background: var(--google-coral-container);
+      color: var(--google-coral-text);
+      border-color: var(--google-coral-border);
+      font-weight: var(--fw-semibold);
+    }
+    .btn-danger:hover {
+      background: var(--google-coral-hover);
+      border-color: #f7b4af;
+      box-shadow: 0 1px 3px rgba(197,34,31,0.2);
+    }
+
+    .btn-warning {
+      background: var(--google-amber-container);
+      color: var(--google-amber-text);
+      border-color: var(--google-amber-border);
+      font-weight: var(--fw-semibold);
+    }
+    .btn-warning:hover {
+      background: var(--google-amber-hover);
+      border-color: #fce299;
+      box-shadow: 0 1px 3px rgba(176,96,0,0.2);
+    }
+
+    /* Toggle Switch */
     .toggle-wrap {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      font-size: var(--fs-body);
+      gap: 0.45rem;
+      font-size: 0.82rem;
       color: var(--text-secondary);
+      font-weight: var(--fw-medium);
+      cursor: pointer;
+      user-select: none;
     }
 
     .toggle {
       position: relative;
-      width: 40px;
+      display: inline-block;
+      width: 38px;
       height: 22px;
-      cursor: pointer;
     }
 
     .toggle input {
       opacity: 0;
       width: 0;
       height: 0;
-      position: absolute;
     }
 
     .toggle-slider {
       position: absolute;
       inset: 0;
-      background: var(--border);
-      border-radius: 11px;
+      background: #dadce0;
+      border-radius: var(--radius-pill);
       transition: background var(--transition);
+      cursor: pointer;
     }
 
-    .toggle-slider::after {
+    .toggle-slider::before {
       content: '';
       position: absolute;
-      width: 16px;
-      height: 16px;
       left: 3px;
       top: 3px;
-      background: var(--text-secondary);
+      width: 16px;
+      height: 16px;
+      background: #ffffff;
       border-radius: 50%;
-      transition: all var(--transition);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      transition: transform var(--transition);
     }
 
     .toggle input:checked + .toggle-slider {
-      background: var(--accent);
+      background: var(--google-blue);
     }
 
-    .toggle input:checked + .toggle-slider::after {
-      left: 21px;
-      background: #fff;
-    }
-
-    .toggle input:focus-visible + .toggle-slider {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
+    .toggle input:checked + .toggle-slider::before {
+      transform: translateX(16px);
     }
 
     /* ============================================================
@@ -305,26 +471,28 @@
        ============================================================ */
     .demo-banner {
       display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
+      background: var(--google-amber-container);
+      border-bottom: 1px solid var(--google-amber-border);
+      color: var(--google-amber-text);
       padding: 0.65rem 1.5rem;
-      background: linear-gradient(135deg, rgba(255,152,0,0.12), rgba(255,152,0,0.06));
-      border-bottom: 1px solid rgba(255,152,0,0.3);
-      color: var(--warning);
-      font-size: var(--fs-body);
       text-align: center;
+      font-size: var(--fs-body);
+      font-weight: var(--fw-medium);
+    }
+    .demo-banner.visible { display: block; }
+    .demo-banner code {
+      background: #ffffff;
+      color: var(--google-amber-text);
+      border-color: var(--google-amber-border);
     }
 
-    .demo-banner.visible { display: flex; }
-
     /* ============================================================
-       MAIN LAYOUT
+       LAYOUT & CARDS (Google Home Pebble / Card Style)
        ============================================================ */
     .main {
-      max-width: 1440px;
+      max-width: 1360px;
       margin: 0 auto;
-      padding: var(--gap);
+      padding: 1.5rem;
     }
 
     .dashboard-grid {
@@ -333,52 +501,36 @@
       gap: var(--gap);
     }
 
-    /* ============================================================
-       CARD
-       ============================================================ */
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1.25rem;
+      padding: 1.4rem;
+      box-shadow: var(--shadow-sm);
       transition: all var(--transition);
       position: relative;
       overflow: hidden;
     }
 
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--accent), transparent);
-      opacity: 0;
-      transition: opacity var(--transition);
-    }
-
     .card:hover {
-      background: var(--bg-card-hover);
-      border-color: rgba(0,188,212,0.3);
+      box-shadow: var(--shadow-hover);
+      border-color: var(--google-blue-border);
     }
-
-    .card:hover::before { opacity: 1; }
 
     .card-title {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.6rem;
       font-size: var(--fs-header);
       font-weight: var(--fw-semibold);
-      margin-bottom: 1rem;
+      margin-bottom: 1.15rem;
       color: var(--text-primary);
     }
 
     .card-title svg {
       width: 20px;
       height: 20px;
-      color: var(--accent);
+      color: var(--google-blue);
       flex-shrink: 0;
     }
 
@@ -391,41 +543,42 @@
     .overview-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
+      gap: 0.85rem;
     }
 
     .overview-stat {
       text-align: center;
-      padding: 0.75rem;
-      background: rgba(0,0,0,0.15);
+      padding: 0.9rem 0.75rem;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
       border-radius: var(--radius-sm);
-      transition: background var(--transition);
+      transition: all var(--transition);
     }
 
-    .overview-stat:hover { background: rgba(0,188,212,0.08); }
+    .overview-stat:hover {
+      background: #f1f5fa;
+      border-color: var(--google-blue-border);
+      transform: translateY(-1px);
+    }
 
     .overview-stat .label {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.4rem;
+      font-weight: var(--fw-semibold);
     }
 
     .overview-stat .value {
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       font-weight: var(--fw-bold);
       color: var(--text-primary);
+      line-height: 1.25;
     }
 
-    .overview-stat .value.online { color: var(--success); }
-    .overview-stat .value.offline { color: var(--error); }
-
-    .overview-stat .sub {
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      margin-top: 0.15rem;
-    }
+    .overview-stat .value.online { color: var(--google-green); }
+    .overview-stat .value.offline { color: var(--google-coral); }
 
     /* ============================================================
        SPEED TEST (Card 2)
@@ -434,13 +587,13 @@
       display: flex;
       gap: 1.5rem;
       justify-content: center;
-      margin-bottom: 1rem;
+      margin-bottom: 1.15rem;
     }
 
     .gauge {
       position: relative;
-      width: 100px;
-      height: 100px;
+      width: 104px;
+      height: 104px;
     }
 
     .gauge-circle {
@@ -448,20 +601,28 @@
       height: 100%;
       border-radius: 50%;
       background: conic-gradient(
-        var(--accent) calc(var(--pct, 0) * 1%),
-        rgba(42,58,74,0.5) 0
+        var(--google-blue) calc(var(--pct, 0) * 1%),
+        var(--google-blue-container) 0
       );
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.6s ease;
+      transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #ulGauge {
+      background: conic-gradient(
+        var(--google-teal) calc(var(--pct, 0) * 1%),
+        var(--google-teal-container) 0
+      );
     }
 
     .gauge-inner {
-      width: 76px;
-      height: 76px;
+      width: 78px;
+      height: 78px;
       border-radius: 50%;
-      background: var(--bg-card);
+      background: #ffffff;
+      box-shadow: 0 1px 4px rgba(60,64,67,0.08);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -471,27 +632,31 @@
     .gauge-value {
       font-size: 1.3rem;
       font-weight: var(--fw-bold);
+      color: var(--text-primary);
       line-height: 1.2;
     }
 
     .gauge-unit {
-      font-size: 0.6rem;
+      font-size: 0.62rem;
       color: var(--text-secondary);
       text-transform: uppercase;
+      font-weight: var(--fw-semibold);
+      letter-spacing: 0.05em;
     }
 
     .gauge-label {
       text-align: center;
-      font-size: 0.75rem;
+      font-size: 0.78rem;
+      font-weight: var(--fw-medium);
       color: var(--text-secondary);
-      margin-top: 0.4rem;
+      margin-top: 0.45rem;
     }
 
     .speed-meta {
       text-align: center;
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       color: var(--text-secondary);
-      margin-bottom: 1rem;
+      margin-bottom: 1.15rem;
     }
 
     /* ============================================================
@@ -516,12 +681,26 @@
       font-size: 0.8rem;
       color: var(--text-secondary);
       justify-content: center;
-      margin-top: -0.25rem;
+      margin-top: -0.15rem;
     }
 
     .guest-status .status-dot {
-      width: 6px;
-      height: 6px;
+      width: 7px;
+      height: 7px;
+    }
+
+    /* ============================================================
+       SECTION SPACING
+       ============================================================ */
+    .section-title {
+      grid-column: 1 / -1;
+      font-size: 0.8rem;
+      font-weight: var(--fw-semibold);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      padding-top: 0.6rem;
+      padding-bottom: 0.2rem;
     }
 
     /* ============================================================
@@ -532,44 +711,49 @@
       flex-wrap: wrap;
       align-items: stretch;
       gap: var(--gap);
-      padding-bottom: 0.5rem;
       position: relative;
     }
 
     .mesh-node {
       min-width: 240px;
       flex: 1 1 calc(25% - var(--gap));
-      background: rgba(0,0,0,0.15);
+      background: var(--bg-primary);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 1rem;
+      padding: 1.15rem;
       position: relative;
       transition: all var(--transition);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .mesh-node:hover {
-      border-color: var(--accent);
-      background: rgba(0,188,212,0.05);
+      border-color: var(--google-blue);
+      background: #ffffff;
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
     }
 
     .mesh-node.primary {
-      border-color: var(--accent);
-      box-shadow: 0 0 15px rgba(0,188,212,0.1);
+      border: 1.5px solid var(--google-blue);
+      background: linear-gradient(180deg, #f7faff 0%, #ffffff 100%);
+      box-shadow: 0 4px 16px rgba(26,115,232,0.1);
     }
 
     .mesh-connector {
       display: flex;
       align-items: center;
-      color: var(--border);
+      color: #cbd5e1;
       font-size: 1.5rem;
       flex-shrink: 0;
-      padding: 0 0.25rem;
+      padding: 0 0.15rem;
     }
 
     .mesh-connector svg {
       width: 40px;
       height: 20px;
-      color: var(--accent);
+      color: var(--google-blue);
       opacity: 0.4;
     }
 
@@ -577,67 +761,75 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 0.75rem;
+      gap: 0.5rem;
+      margin-bottom: 0.85rem;
     }
 
     .mesh-node-name {
       font-weight: var(--fw-semibold);
-      font-size: 0.95rem;
+      font-size: 1rem;
+      color: var(--text-primary);
     }
 
     .mesh-node-status {
       display: flex;
       align-items: center;
-      gap: 0.3rem;
+      gap: 0.35rem;
       font-size: 0.75rem;
-      color: var(--text-secondary);
     }
 
     .mesh-node-detail {
       display: flex;
       justify-content: space-between;
-      padding: 0.3rem 0;
-      border-bottom: 1px solid rgba(42,58,74,0.5);
-      font-size: 0.8rem;
-    }
-
-    .mesh-node-detail:last-of-type { border-bottom: none; }
-    .mesh-node-detail .label { color: var(--text-secondary); }
-    .mesh-node-detail .val { color: var(--text-primary); }
-
-    .signal-bar-wrap {
-      display: flex;
       align-items: center;
-      gap: 0.35rem;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 0.82rem;
     }
 
+    .mesh-node-detail:last-of-type {
+      border-bottom: none;
+      margin-bottom: 0.6rem;
+    }
+
+    .mesh-node-detail .label {
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+    }
+
+    .mesh-node-detail .val {
+      font-size: 0.82rem;
+      color: var(--text-primary);
+    }
+
+    /* Signal bars */
     .signal-bars {
-      display: flex;
+      display: inline-flex;
       align-items: flex-end;
       gap: 2px;
       height: 14px;
+      vertical-align: middle;
     }
 
     .signal-bar {
       width: 3px;
+      background: #dadce0;
       border-radius: 1px;
-      background: var(--border);
-      transition: background var(--transition);
     }
 
-    .signal-bar:nth-child(1) { height: 4px; }
-    .signal-bar:nth-child(2) { height: 7px; }
-    .signal-bar:nth-child(3) { height: 10px; }
-    .signal-bar:nth-child(4) { height: 14px; }
+    .signal-bar:nth-child(1) { height: 25%; }
+    .signal-bar:nth-child(2) { height: 50%; }
+    .signal-bar:nth-child(3) { height: 75%; }
+    .signal-bar:nth-child(4) { height: 100%; }
 
-    .signal-bar.active { background: var(--success); }
-    .signal-bar.active.medium { background: var(--warning); }
-    .signal-bar.active.weak { background: var(--error); }
+    .signal-bar.active { background: var(--google-green); }
+    .signal-bar.active.medium { background: var(--google-amber); }
+    .signal-bar.active.weak { background: var(--google-coral); }
 
-    .mesh-node .btn {
-      width: 100%;
-      margin-top: 0.75rem;
-      justify-content: center;
+    .signal-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
     }
 
     /* ============================================================
@@ -648,24 +840,28 @@
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      margin-bottom: 1rem;
+      margin-bottom: 1.15rem;
       flex-wrap: wrap;
     }
 
     .search-box {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      background: rgba(0,0,0,0.2);
+      gap: 0.6rem;
+      background: var(--bg-primary);
       border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 0.45rem 0.75rem;
+      border-radius: var(--radius-pill);
+      padding: 0.5rem 1rem;
       flex: 1;
       max-width: 360px;
-      transition: border-color var(--transition);
+      transition: all var(--transition);
     }
 
-    .search-box:focus-within { border-color: var(--accent); }
+    .search-box:focus-within {
+      background: #ffffff;
+      border-color: var(--google-blue);
+      box-shadow: 0 0 0 3px rgba(26,115,232,0.15);
+    }
 
     .search-box svg {
       width: 16px;
@@ -684,17 +880,19 @@
       width: 100%;
     }
 
-    .search-box input::placeholder { color: var(--text-secondary); }
+    .search-box input::placeholder { color: var(--text-tertiary); }
 
     .device-count {
       font-size: var(--fs-body);
       color: var(--text-secondary);
+      font-weight: var(--fw-medium);
     }
 
     .table-wrap {
       overflow-x: auto;
       border-radius: var(--radius-sm);
       border: 1px solid var(--border);
+      background: #ffffff;
     }
 
     table {
@@ -704,14 +902,14 @@
     }
 
     thead th {
-      background: rgba(0,0,0,0.2);
-      padding: 0.65rem 0.75rem;
+      background: #f8f9fa;
+      padding: 0.75rem 0.85rem;
       text-align: left;
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       font-weight: var(--fw-semibold);
       color: var(--text-secondary);
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.05em;
       border-bottom: 1px solid var(--border);
       cursor: pointer;
       user-select: none;
@@ -719,29 +917,34 @@
       transition: color var(--transition);
     }
 
-    thead th:hover { color: var(--accent); }
+    thead th:hover { color: var(--google-blue); }
 
     thead th .sort-icon {
       display: inline-block;
       margin-left: 0.3rem;
-      opacity: 0.3;
+      opacity: 0.35;
       font-size: 0.65rem;
     }
 
-    thead th.sorted .sort-icon { opacity: 1; color: var(--accent); }
-
-    tbody tr {
-      border-bottom: 1px solid rgba(42,58,74,0.4);
-      transition: background var(--transition);
+    thead th.sorted .sort-icon {
+      opacity: 1;
+      color: var(--google-blue);
     }
 
-    tbody tr:hover { background: rgba(0,188,212,0.04); }
+    tbody tr {
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background var(--transition);
+      background: #ffffff;
+    }
+
+    tbody tr:hover { background: #f8fafd; }
     tbody tr:last-child { border-bottom: none; }
 
     tbody td {
-      padding: 0.6rem 0.75rem;
+      padding: 0.7rem 0.85rem;
       vertical-align: middle;
       white-space: nowrap;
+      font-size: 0.84rem;
     }
 
     .device-status-dot {
@@ -752,63 +955,80 @@
     }
 
     .device-status-dot.online {
-      background: var(--success);
-      box-shadow: 0 0 4px var(--success);
+      background: var(--google-green);
+      box-shadow: 0 0 0 3px rgba(19, 115, 51, 0.15);
     }
 
     .device-status-dot.offline {
-      background: var(--text-secondary);
+      background: #bdc1c6;
     }
 
     .device-name-cell {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.65rem;
+    }
+
+    .device-icon-wrap {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid var(--border-subtle);
     }
 
     .device-icon {
-      width: 20px;
-      height: 20px;
+      width: 16px;
+      height: 16px;
       color: var(--text-secondary);
-      flex-shrink: 0;
+    }
+
+    .device-name-text {
+      font-weight: var(--fw-medium);
+      color: var(--text-primary);
     }
 
     tr.paused {
-      opacity: 0.6;
+      opacity: 0.65;
+      background: #fff8f7 !important;
     }
 
     tr.paused .device-name-text {
       text-decoration: line-through;
-      color: var(--error);
+      color: var(--google-coral);
     }
 
     tr.prioritized {
-      background: rgba(255,193,7,0.04) !important;
+      background: #fffdf5 !important;
     }
 
     tr.prioritized .device-name-cell::after {
       content: '★';
-      color: #ffc107;
-      font-size: 0.85rem;
+      color: #f29900;
+      font-size: 0.9rem;
     }
 
     .signal-strength-cell {
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.5rem;
     }
 
     .signal-mini-bar {
-      width: 40px;
-      height: 4px;
-      background: var(--border);
-      border-radius: 2px;
+      width: 44px;
+      height: 5px;
+      background: #e8eaed;
+      border-radius: 9999px;
       overflow: hidden;
     }
 
     .signal-mini-bar-fill {
       height: 100%;
-      border-radius: 2px;
+      border-radius: 9999px;
       transition: width 0.4s ease;
     }
 
@@ -829,13 +1049,14 @@
       position: absolute;
       right: 0;
       top: 100%;
-      background: var(--bg-card);
+      background: #ffffff;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      box-shadow: var(--shadow-md);
       z-index: 50;
-      min-width: 100px;
+      min-width: 110px;
       overflow: hidden;
+      margin-top: 4px;
     }
 
     .priority-menu.open { display: block; }
@@ -843,48 +1064,55 @@
     .priority-menu button {
       display: block;
       width: 100%;
-      padding: 0.45rem 0.75rem;
+      padding: 0.5rem 0.85rem;
       background: none;
       border: none;
       color: var(--text-primary);
-      font-size: var(--fs-body);
+      font-size: 0.82rem;
       font-family: var(--font-stack);
+      font-weight: var(--fw-medium);
       cursor: pointer;
       text-align: left;
       transition: background var(--transition);
     }
 
-    .priority-menu button:hover { background: var(--bg-card-hover); }
+    .priority-menu button:hover { background: var(--bg-hover); color: var(--google-blue); }
 
     /* ============================================================
-       LOCAL DEVICE INFO
+       LOCAL DEVICE INFO (Eureka Info)
        ============================================================ */
     .info-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 0.75rem;
+      gap: 0.85rem;
     }
 
     .info-item {
-      background: rgba(0,0,0,0.15);
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
       border-radius: var(--radius-sm);
-      padding: 0.75rem;
-      transition: background var(--transition);
+      padding: 0.85rem;
+      transition: all var(--transition);
     }
 
-    .info-item:hover { background: rgba(0,188,212,0.06); }
+    .info-item:hover {
+      background: #f1f5fa;
+      border-color: var(--google-blue-border);
+    }
 
     .info-item .label {
-      font-size: 0.7rem;
+      font-size: 0.72rem;
       color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.04em;
-      margin-bottom: 0.2rem;
+      margin-bottom: 0.25rem;
+      font-weight: var(--fw-semibold);
     }
 
     .info-item .val {
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: var(--fw-semibold);
+      color: var(--text-primary);
       word-break: break-all;
     }
 
@@ -906,42 +1134,44 @@
       display: flex;
       align-items: center;
       gap: 0.6rem;
-      padding: 0.75rem 1rem;
+      padding: 0.85rem 1.15rem;
       border-radius: var(--radius-sm);
-      background: var(--bg-card);
+      background: #ffffff;
       border: 1px solid var(--border);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      box-shadow: var(--shadow-modal);
       font-size: var(--fs-body);
+      color: var(--text-primary);
       pointer-events: auto;
-      animation: slideIn 0.3s ease forwards;
+      animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
       max-width: 380px;
     }
 
-    .toast.success { border-left: 3px solid var(--success); }
-    .toast.error   { border-left: 3px solid var(--error); }
-    .toast.warning { border-left: 3px solid var(--warning); }
-    .toast.info    { border-left: 3px solid var(--accent); }
+    .toast.success { border-left: 4px solid var(--google-green); }
+    .toast.error   { border-left: 4px solid var(--google-coral); }
+    .toast.warning { border-left: 4px solid var(--google-amber); }
+    .toast.info    { border-left: 4px solid var(--google-blue); }
 
-    .toast.removing { animation: slideOut 0.3s ease forwards; }
+    .toast.removing { animation: slideOut 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
     @keyframes slideIn {
-      from { opacity: 0; transform: translateX(60px); }
+      from { opacity: 0; transform: translateX(50px); }
       to   { opacity: 1; transform: translateX(0); }
     }
 
     @keyframes slideOut {
       from { opacity: 1; transform: translateX(0); }
-      to   { opacity: 0; transform: translateX(60px); }
+      to   { opacity: 0; transform: translateX(50px); }
     }
 
     /* ============================================================
-       MODAL
+       MODAL (Material 3 Dialog)
        ============================================================ */
     .modal-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(32, 33, 36, 0.45);
+      backdrop-filter: blur(4px);
       z-index: 200;
       align-items: center;
       justify-content: center;
@@ -959,36 +1189,37 @@
     }
 
     .modal {
-      background: var(--bg-card);
+      background: #ffffff;
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1.5rem;
+      padding: 1.75rem;
       max-width: 440px;
       width: 100%;
-      box-shadow: 0 16px 48px rgba(0,0,0,0.5);
-      animation: modalPop 0.25s ease;
+      box-shadow: var(--shadow-modal);
+      animation: modalPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     @keyframes modalPop {
-      from { opacity: 0; transform: scale(0.92); }
+      from { opacity: 0; transform: scale(0.94); }
       to   { opacity: 1; transform: scale(1); }
     }
 
     .modal-title {
-      font-size: 1.15rem;
+      font-size: 1.2rem;
       font-weight: var(--fw-semibold);
       margin-bottom: 0.75rem;
+      color: var(--text-primary);
     }
 
     .modal-body {
       color: var(--text-secondary);
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.35rem;
       line-height: 1.6;
     }
 
     .modal-actions {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.65rem;
       justify-content: flex-end;
     }
 
@@ -1033,23 +1264,10 @@
       }
     }
 
-    /* ============================================================
-       SECTION SPACING
-       ============================================================ */
-    .section-title {
-      grid-column: 1 / -1;
-      font-size: 0.75rem;
-      font-weight: var(--fw-semibold);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-secondary);
-      padding-top: 0.5rem;
-    }
-
     /* Empty state */
     .empty-state {
       text-align: center;
-      padding: 2rem;
+      padding: 2.5rem 1rem;
       color: var(--text-secondary);
     }
 
@@ -1057,10 +1275,10 @@
       width: 48px;
       height: 48px;
       margin-bottom: 0.75rem;
-      opacity: 0.4;
+      opacity: 0.35;
+      color: var(--text-secondary);
     }
 
-    /* Pulse animation for live elements */
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.5; }
@@ -1076,13 +1294,15 @@
        ============================================================ -->
   <header class="header" role="banner">
     <div class="header-left">
-      <!-- Wifi SVG Icon -->
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <!-- Wifi SVG Icon in Google Home Pastel Box -->
+      <div class="header-icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
         <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
         <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
         <circle cx="12" cy="20" r="1"/>
       </svg>
+      </div>
       <h1>Nest Wifi Dashboard</h1>
     </div>
     <div class="header-right">
@@ -1580,14 +1800,15 @@
     function updateOverview(data) {
       const wanEl = document.getElementById('wanStatus');
       const wanOnline = data.wan?.connected || data.wan_connected || data.wan_status === 'online' || data.status === 'online';
-      wanEl.textContent = wanOnline ? 'Online' : 'Offline';
-      wanEl.className = `value ${wanOnline ? 'online' : 'offline'}`;
+      wanEl.innerHTML = wanOnline
+        ? '<span class="chip chip-green" style="font-size:0.95rem;padding:0.35rem 0.9rem"><span class="status-dot"></span> Online</span>'
+        : '<span class="chip chip-coral" style="font-size:0.95rem;padding:0.35rem 0.9rem"><span class="status-dot offline"></span> Offline</span>';
 
-      document.getElementById('publicIP').textContent = data.wan?.ip_address || data.public_ip || data.wan_ip || '—';
+      document.getElementById('publicIP').innerHTML = `<code>${escapeHTML(data.wan?.ip_address || data.public_ip || data.wan_ip || '—')}</code>`;
       document.getElementById('ispName').textContent = data.wan?.isp || data.isp || 'Google Nest Wifi Pro Mesh';
       document.getElementById('uptime').textContent = data.uptime_human || formatUptime(data.uptime_seconds || data.uptime);
-      document.getElementById('deviceCount').textContent = data.total_devices ?? data.connected_devices ?? data.device_count ?? (allDevices ? allDevices.length : '—');
-      document.getElementById('networkLoad').textContent = data.network_load || 'Normal';
+      document.getElementById('deviceCount').innerHTML = `<span class="chip chip-blue" style="font-size:1.15rem;font-weight:700;padding:0.25rem 0.85rem">${data.total_devices ?? data.connected_devices ?? data.device_count ?? (allDevices ? allDevices.length : '—')}</span>`;
+      document.getElementById('networkLoad').innerHTML = `<span class="chip chip-teal" style="font-size:0.85rem">${escapeHTML(data.network_load || 'Normal')}</span>`;
     }
 
     /* ==========================================================
@@ -1673,19 +1894,21 @@
             <div class="mesh-node-header">
               <span class="mesh-node-name">${escapeHTML(node.name || node.friendly_name || `Node ${idx + 1}`)}</span>
               <span class="mesh-node-status">
-                <span class="status-dot ${isOnline ? '' : 'offline'}"></span>
-                ${isOnline ? 'Online' : 'Offline'}
+                <span class="chip ${isOnline ? 'chip-green' : 'chip-neutral'}" style="font-size:0.75rem;padding:0.15rem 0.55rem">
+                  <span class="status-dot ${isOnline ? '' : 'offline'}"></span>
+                  ${isOnline ? 'Online' : 'Offline'}
+                </span>
               </span>
             </div>
-            <div class="mesh-node-detail"><span class="label">Connected Devices</span><span class="val" style="font-weight:600">${devCount}</span></div>
+            <div class="mesh-node-detail"><span class="label">Connected Devices</span><span class="val"><span class="chip chip-neutral" style="font-weight:600">${devCount} devices</span></span></div>
             <div class="mesh-node-detail">
               <span class="label">${isPrimary ? 'WAN Uplink' : 'Backhaul Signal'}</span>
-              <span class="val signal-bar-wrap">${isPrimary ? '<span style="color:var(--success);font-weight:600">Gigabit Wired</span>' : `${signalBarsHTML(signal)} ${signal}%`}</span>
+              <span class="val signal-bar-wrap">${isPrimary ? '<span class="chip chip-green">Gigabit Wired</span>' : `${signalBarsHTML(signal)} <span style="font-weight:600;font-size:0.8rem">${signal}%</span>`}</span>
             </div>
-            <div class="mesh-node-detail"><span class="label">IP Address</span><span class="val">${escapeHTML(node.ip_address || node.ip || '—')}</span></div>
+            <div class="mesh-node-detail"><span class="label">IP Address</span><span class="val"><code>${escapeHTML(node.ip_address || node.ip || '—')}</code></span></div>
             <div class="mesh-node-detail"><span class="label">Firmware</span><span class="val">${escapeHTML(node.software_version || node.firmware || node.firmware_version || '—')}</span></div>
-            ${isPrimary ? '<div class="mesh-node-detail"><span class="label">System Role</span><span class="val" style="color:var(--accent);font-weight:600">Primary Gateway</span></div>' : ''}
-            <button class="btn btn-sm btn-danger" onclick="confirmAction('Restart Node', 'Restart ${escapeHTML(node.name || 'this node')}? Devices connected to it will temporarily disconnect.', () => restartAP('${node.id || node.ap_id || idx}'))">
+            ${isPrimary ? '<div class="mesh-node-detail"><span class="label">System Role</span><span class="val"><span class="chip chip-blue">Primary Gateway</span></span></div>' : ''}
+            <button class="btn btn-sm btn-danger" style="margin-top:0.75rem;width:100%;justify-content:center" onclick="confirmAction('Restart Node', 'Restart ${escapeHTML(node.name || 'this node')}? Devices connected to it will temporarily disconnect.', () => restartAP('${node.id || node.ap_id || idx}'))">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
               Restart Node
             </button>
@@ -1838,26 +2061,44 @@
           isPrioritized ? 'prioritized' : ''
         ].filter(Boolean).join(' ');
 
+        let connBadgeHtml = '';
+        if (isOffline) {
+          connBadgeHtml = '<span class="chip chip-neutral">Offline</span>';
+        } else {
+          const c = (conn || '').toLowerCase();
+          if (c.includes('6ghz') || c.includes('6e')) {
+            connBadgeHtml = `<span class="chip chip-purple">${escapeHTML(conn)}</span>`;
+          } else if (c.includes('5ghz')) {
+            connBadgeHtml = `<span class="chip chip-teal">${escapeHTML(conn)}</span>`;
+          } else if (c.includes('2.4ghz')) {
+            connBadgeHtml = `<span class="chip chip-amber">${escapeHTML(conn)}</span>`;
+          } else if (c.includes('wired') || c.includes('gigabit') || c.includes('ethernet')) {
+            connBadgeHtml = `<span class="chip chip-blue">${escapeHTML(conn)}</span>`;
+          } else {
+            connBadgeHtml = `<span class="chip chip-blue">${escapeHTML(conn)}</span>`;
+          }
+        }
+
         let signalCellHtml = '';
         if (isOffline) {
           signalCellHtml = '<span style="font-size:0.75rem;color:var(--text-secondary)">—</span>';
         } else if (isWired) {
-          signalCellHtml = '<span style="font-size:0.75rem;color:var(--accent);font-weight:600">Gigabit Wired</span>';
+          signalCellHtml = '<span class="chip chip-blue" style="font-size:0.72rem;padding:0.15rem 0.5rem">Gigabit Wired</span>';
         } else {
           signalCellHtml = `
             <div class="signal-strength-cell">
               <div class="signal-mini-bar"><div class="signal-mini-bar-fill" style="width:${signal}%;background:${signalColor(signal)}"></div></div>
-              <span style="font-size:0.75rem;color:var(--text-secondary)">${signal}%</span>
+              <span style="font-size:0.75rem;color:var(--text-secondary);font-weight:600">${signal}%</span>
             </div>`;
         }
 
         html += `<tr class="${rowClass}">
           <td><span class="device-status-dot ${isOnline ? 'online' : 'offline'}" title="${isOnline ? 'Online' : 'Offline'}"></span></td>
-          <td><div class="device-name-cell">${DEVICE_ICONS[typeKey]}<span class="device-name-text">${escapeHTML(name)}</span></div></td>
+          <td><div class="device-name-cell"><div class="device-icon-wrap">${DEVICE_ICONS[typeKey]}</div><span class="device-name-text">${escapeHTML(name)}</span></div></td>
           <td>${escapeHTML(type)}</td>
-          <td><code style="font-size:0.8rem;color:${isOffline ? 'var(--text-secondary)' : 'var(--accent)'}">${escapeHTML(ip)}</code></td>
+          <td><code style="${isOffline ? 'color:var(--text-secondary);background:#f1f3f4;' : ''}">${escapeHTML(ip)}</code></td>
           <td style="color:var(--text-secondary);font-size:0.8rem">${escapeHTML(mac)}</td>
-          <td><span style="${isOffline ? 'color:var(--text-secondary);font-style:italic' : ''}">${escapeHTML(conn)}</span></td>
+          <td>${connBadgeHtml}</td>
           <td>${signalCellHtml}</td>
           <td>${formatBytes(usage)}</td>
           <td>
@@ -1869,7 +2110,7 @@
                 ${isPaused ? '▶' : '⏸'}
               </button>
               <div class="priority-dropdown">
-                <button class="btn btn-sm" onclick="togglePriorityMenu(this)" title="Prioritize device" aria-label="Prioritize ${escapeHTML(name)}">★</button>
+                <button class="btn btn-sm btn-warning" onclick="togglePriorityMenu(this)" title="Prioritize device" aria-label="Prioritize ${escapeHTML(name)}">★</button>
                 <div class="priority-menu">
                   <button onclick="prioritizeDevice('${deviceId}', 1)">1 hour</button>
                   <button onclick="prioritizeDevice('${deviceId}', 2)">2 hours</button>
