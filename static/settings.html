@@ -582,6 +582,11 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         Security &amp; Firewall
       </button>
+      <div class="nav-group-label" style="margin-top:0.75rem">System</div>
+      <button class="nav-item" data-section="service" onclick="showSection('service', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        Background Service
+      </button>
       <button class="nav-item" data-section="advanced" onclick="showSection('advanced', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Advanced
@@ -1162,6 +1167,137 @@
         </div>
       </section>
 
+      <!-- ===================== BACKGROUND SERVICE ===================== -->
+      <section class="settings-section" id="section-service">
+        <div class="section-heading">Background Service</div>
+
+        <div class="info-banner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Configure the dashboard to run silently in the background as a headless service on your machine, starting automatically on Windows boot without opening a terminal window.
+        </div>
+
+        <!-- Service Status Card -->
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            Service Status &amp; Runtime
+          </div>
+
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Execution State</span>
+              <span class="form-hint">Current status of the dashboard web service</span>
+            </div>
+            <div id="serviceStateBadge">
+              <span class="badge badge-green" style="font-weight:600">● Active &amp; Responding</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Service URL</span>
+              <span class="form-hint">Local address and port where the interface is hosted</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.75rem">
+              <span class="form-input mono" id="serviceUrlText" style="background:var(--card-subtle);display:inline-block;width:auto;min-width:180px">http://localhost:5000</span>
+              <a href="http://localhost:5000" target="_blank" class="btn btn-secondary" style="font-size:0.8rem;padding:0.4rem 0.8rem;text-decoration:none">Open Dashboard ↗</a>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Process ID (PID)</span>
+              <span class="form-hint">Operating system PID of the running instance</span>
+            </div>
+            <span class="form-input mono" id="servicePidText" style="background:var(--card-subtle);display:inline-block;width:auto;min-width:90px">--</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Runtime Engine</span>
+              <span class="form-hint">Windowless python launcher used for silent background execution</span>
+            </div>
+            <span id="servicePythonPath" class="mono" style="font-size:0.8rem;color:var(--text-secondary);word-break:break-all">pythonw.exe</span>
+          </div>
+        </div>
+
+        <!-- Autostart Configuration Card -->
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+            System Startup &amp; Background Mode
+          </div>
+
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Run in Background on Startup</span>
+              <span class="form-hint">Automatically boot the dashboard silently when you log into Windows (no console window)</span>
+            </div>
+            <label class="toggle-wrap">
+              <span class="toggle">
+                <input type="checkbox" id="service_autostart_toggle" onchange="toggleServiceAutostart(this.checked)">
+                <span class="toggle-slider"></span>
+              </span>
+            </label>
+          </div>
+
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Silent / Headless Mode</span>
+              <span class="form-hint">Suppresses pop-up browser tabs on system boot so it remains strictly in the background</span>
+            </div>
+            <span class="badge badge-blue">Always Enabled for Service</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Startup Launcher File</span>
+              <span class="form-hint">Path to the registered Windows Startup launcher</span>
+            </div>
+            <span id="serviceStartupPath" class="mono" style="font-size:0.75rem;color:var(--text-secondary);word-break:break-all">--</span>
+          </div>
+        </div>
+
+        <!-- Service Control & Standalone Scripts Card -->
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            Service Actions &amp; Standalone Scripts
+          </div>
+
+          <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:1.1rem;line-height:1.5">
+            You can control the background service directly from this panel or use the native script files generated in your project folder:
+          </p>
+
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem;margin-bottom:1.25rem">
+            <button class="btn btn-secondary" onclick="controlService('start')" style="display:inline-flex;align-items:center;gap:0.4rem">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Start Background Process
+            </button>
+            <button class="btn btn-secondary" onclick="controlService('restart')" style="display:inline-flex;align-items:center;gap:0.4rem">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Restart Service
+            </button>
+            <button class="btn btn-secondary" onclick="controlService('stop')" style="color:var(--google-red);display:inline-flex;align-items:center;gap:0.4rem">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+              Stop Service
+            </button>
+            <button class="btn btn-secondary" onclick="loadServiceStatus(true)" style="margin-left:auto">
+              Refresh Status
+            </button>
+          </div>
+
+          <div style="background:var(--card-subtle);padding:1rem 1.15rem;border-radius:var(--radius-sm);border:1px solid var(--border-color);font-size:0.82rem;line-height:1.7">
+            <div style="font-weight:600;margin-bottom:0.35rem;color:var(--text-primary)">Generated Standalone Scripts:</div>
+            <div><strong class="mono" style="color:var(--google-blue)">start_background.vbs</strong>: Silent VBScript launcher — double click to launch windowless.</div>
+            <div><strong class="mono" style="color:var(--google-blue)">start_background.bat</strong>: Windows batch launcher for background execution.</div>
+            <div><strong class="mono" style="color:var(--google-red)">stop_background.bat</strong>: Stops any background process listening on port 5000.</div>
+            <div><strong class="mono" style="color:var(--google-green)">install_service.bat</strong>: Direct installer script to register autostart on Windows.</div>
+            <div><strong class="mono" style="color:var(--text-secondary)">uninstall_service.bat</strong>: Direct script to remove autostart from Windows.</div>
+          </div>
+        </div>
+      </section>
+
     </div><!-- /settings-content -->
   </div><!-- /settings-layout -->
 
@@ -1180,6 +1316,9 @@
       document.getElementById('section-' + section).classList.add('active');
       btn.classList.add('active');
       currentSection = section;
+      if (section === 'service') {
+        loadServiceStatus();
+      }
     }
 
     // ========== TOAST ==========
@@ -1310,6 +1449,11 @@
         payload = { qos_enabled: getChecked('adv_qos'), beamforming: getChecked('adv_beamforming'), mu_mimo: getChecked('adv_mumimo'), fast_roaming: getChecked('adv_fast_roaming'), ipv6_enabled: getChecked('adv_ipv6'), mtu: parseInt(getVal('adv_mtu')) };
       } else if (section === 'ports') {
         showToast('Use + Add Rule / Delete buttons to manage port rules', 'info');
+        btn.disabled = false; btn.innerHTML = saveIcon() + ' Save Changes';
+        return;
+      } else if (section === 'service') {
+        const autostart = getChecked('service_autostart_toggle');
+        await toggleServiceAutostart(autostart);
         btn.disabled = false; btn.innerHTML = saveIcon() + ' Save Changes';
         return;
       }
@@ -1580,9 +1724,82 @@
       }
     }
 
+    // ========== BACKGROUND SERVICE ==========
+    async function loadServiceStatus(interactive = false) {
+      try {
+        const res = await fetch(`${API}/api/service/status`);
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+
+        const badge = document.getElementById('serviceStateBadge');
+        if (badge) {
+          if (data.running) {
+            badge.innerHTML = '<span class="badge badge-green" style="font-weight:600">● Running in Background</span>';
+          } else {
+            badge.innerHTML = '<span class="badge badge-neutral" style="font-weight:600">○ Stopped</span>';
+          }
+        }
+
+        const urlEl = document.getElementById('serviceUrlText');
+        if (urlEl) urlEl.textContent = data.url || 'http://localhost:5000';
+
+        const pidEl = document.getElementById('servicePidText');
+        if (pidEl) pidEl.textContent = data.pid || data.current_pid || '--';
+
+        const pyEl = document.getElementById('servicePythonPath');
+        if (pyEl) pyEl.textContent = data.python_path || 'pythonw.exe';
+
+        const startEl = document.getElementById('serviceStartupPath');
+        if (startEl) startEl.textContent = data.startup_path || 'Not installed';
+
+        const toggle = document.getElementById('service_autostart_toggle');
+        if (toggle) toggle.checked = !!data.autostart;
+
+        if (interactive) {
+          showToast('Service status updated', 'info', 2000);
+        }
+      } catch (err) {
+        if (interactive) showToast('Could not fetch service status: ' + err.message, 'error');
+      }
+    }
+
+    async function toggleServiceAutostart(enable) {
+      try {
+        const res = await fetch(`${API}/api/service/autostart`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: enable })
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || 'Failed to update autostart');
+        showToast(data.message || (enable ? 'Autostart enabled!' : 'Autostart disabled!'), 'success', 5000);
+        await loadServiceStatus();
+      } catch (err) {
+        showToast(err.message, 'error', 6000);
+        await loadServiceStatus();
+      }
+    }
+
+    async function controlService(action) {
+      try {
+        const res = await fetch(`${API}/api/service/control`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: action })
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || 'Service action failed');
+        showToast(data.message || `Action ${action} executed`, 'info', 4000);
+        setTimeout(loadServiceStatus, 1500);
+      } catch (err) {
+        showToast(err.message, 'error', 5000);
+      }
+    }
+
     // Load on startup
     loadSettings();
     loadAuthStatus();
+    loadServiceStatus();
   </script>
 </body>
 </html>

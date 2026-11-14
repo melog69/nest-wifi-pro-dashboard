@@ -1058,6 +1058,11 @@ _SETTINGS_STORE: dict[str, Any] = {
         "fast_roaming": True,
         "mtu": 1500,
     },
+    "service": {
+        "autostart": False,
+        "headless": True,
+        "port": 5000,
+    },
 }
 
 

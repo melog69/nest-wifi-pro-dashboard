@@ -94,6 +94,25 @@ Double-click **`start.bat`** (or run in PowerShell):
 ```
 The launcher will automatically configure a virtual environment, install requirements, and open `http://localhost:5000` in your default browser.
 
+### 3. Running as a Background Service
+You can run the dashboard silently in the background (no console window) so it is always accessible at `http://localhost:5000`:
+
+* **From the Settings UI:**
+  Navigate to **Settings** ➔ **System** ➔ **Background Service**, and toggle **"Run in Background on Startup"**.
+* **1-Click Launchers (Silent / Windowless):**
+  * `start_background.vbs`: Starts the app completely headless via `pythonw.exe` without opening a terminal window.
+  * `stop_background.bat`: Halts the background service.
+  * `install_service.bat`: Registers the dashboard to automatically start on Windows login.
+  * `uninstall_service.bat`: Unregisters the startup service.
+* **Command Line Flags:**
+  ```powershell
+  python run.py --no-browser        # Launch without opening a browser window
+  python run.py --service           # Run in headless service mode
+  python run.py --install-service   # Register autostart for the current user
+  python run.py --uninstall-service # Remove autostart registration
+  python run.py --status            # Output JSON service status
+  ```
+
 ---
 
 ## 🔐 Connecting Your Real Google Nest Wifi Network
@@ -164,17 +183,25 @@ The backend exposes a clean REST API consumed by the dashboard:
 ```
 nest-wifi-dashboard/
 ├── .env.example          # Environment template
-├── .gitignore            # Ignores .venv, .env, and temp files
+├── .gitignore            # Ignores .venv, .credentials.enc, settings_store.json, etc.
 ├── app.py                # Flask application & multi-threaded async runner
 ├── auth_helper.py        # Interactive Google OAuth token exchange wizard
 ├── config.py             # Configuration loader with sensible defaults
+├── credentials.py        # Windows DPAPI encrypted token store
+├── service_manager.py    # Background service & autostart manager
 ├── README.md             # Project documentation
 ├── requirements.txt      # Python dependencies
-├── run.py                # Application entrypoint & auto-browser launcher
+├── run.py                # Application entrypoint & CLI service controller
 ├── setup_auth.bat        # Windows 1-click authentication wizard
-├── start.bat             # Windows 1-click dashboard launcher
+├── start.bat             # Windows 1-click foreground launcher
+├── start_background.vbs  # Silent windowless background runner
+├── start_background.bat  # Background launcher batch wrapper
+├── stop_background.bat   # Process terminator for port 5000
+├── install_service.bat   # Windows autostart service installer
+├── uninstall_service.bat # Windows autostart service uninstaller
 ├── static/
-│   └── index.html        # Single-page modern dashboard UI
+│   ├── index.html        # Single-page modern dashboard UI
+│   └── settings.html     # Settings UI (DNS, DHCP, Ports, Wi-Fi, Service, Auth)
 └── wifi_client.py        # Async data adapter for Google Wifi & local endpoints
 ```
 

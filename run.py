@@ -94,7 +94,38 @@ def _open_browser(port: int) -> None:
 # Main
 # ---------------------------------------------------------------------------
 def main() -> None:
+    # Handle service management CLI flags before starting server
+    if "--install-service" in sys.argv:
+        import service_manager
+        res = service_manager.enable_autostart()
+        if res.get("ok"):
+            print("  ✓ " + res.get("message", "Service installed."))
+        else:
+            print("  ✗ " + res.get("error", "Failed to install service."))
+        sys.exit(0 if res.get("ok") else 1)
+
+    if "--uninstall-service" in sys.argv:
+        import service_manager
+        res = service_manager.disable_autostart()
+        if res.get("ok"):
+            print("  ✓ " + res.get("message", "Service uninstalled."))
+        else:
+            print("  ✗ " + res.get("error", "Failed to uninstall service."))
+        sys.exit(0 if res.get("ok") else 1)
+
+    if "--status" in sys.argv:
+        import json, service_manager
+        print(json.dumps(service_manager.get_service_status(), indent=2))
+        sys.exit(0)
+
     _print_banner()
+
+    # Ensure background helper scripts exist
+    try:
+        import service_manager
+        service_manager.ensure_launcher_scripts()
+    except Exception:
+        pass
 
     # Ensure static directory exists (even if empty — Flask needs it)
     static_dir = os.path.join(_project_dir, "static")
@@ -118,9 +149,18 @@ def main() -> None:
                 "</div></body></html>\n"
             )
 
-    # Open browser in background
-    browser_thread = threading.Thread(target=_open_browser, args=(config.FLASK_PORT,), daemon=True)
-    browser_thread.start()
+    no_browser = (
+        "--no-browser" in sys.argv
+        or "--service" in sys.argv
+        or os.environ.get("NO_BROWSER") == "1"
+    )
+
+    if not no_browser:
+        # Open browser in background
+        browser_thread = threading.Thread(target=_open_browser, args=(config.FLASK_PORT,), daemon=True)
+        browser_thread.start()
+    else:
+        print("  🔇  Headless / Background service mode: Browser auto-open suppressed.")
 
     # Start Flask
     print(f"  🚀  Starting Flask on http://0.0.0.0:{config.FLASK_PORT}")

@@ -404,6 +404,64 @@ def api_auth_disconnect():
 
 
 # ---------------------------------------------------------------------------
+# Background Service Management API
+# ---------------------------------------------------------------------------
+
+@app.route("/api/service/status", methods=["GET"])
+def api_service_status():
+    """Return status of the background service and autostart configuration."""
+    try:
+        import service_manager
+        status = service_manager.get_service_status()
+        return jsonify(status), 200
+    except Exception as exc:
+        logger.exception("GET /api/service/status failed")
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+@app.route("/api/service/autostart", methods=["POST"])
+def api_service_autostart():
+    """Enable or disable system autostart for the background service."""
+    try:
+        data = request.get_json(silent=True) or {}
+        enable = bool(data.get("enabled", True))
+        import service_manager
+        if enable:
+            res = service_manager.enable_autostart()
+        else:
+            res = service_manager.disable_autostart()
+        return jsonify(res), (200 if res.get("ok") else 400)
+    except Exception as exc:
+        logger.exception("POST /api/service/autostart failed")
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+@app.route("/api/service/control", methods=["POST"])
+def api_service_control():
+    """Start, stop, or restart the background service."""
+    try:
+        data = request.get_json(silent=True) or {}
+        action = data.get("action", "start")
+        import service_manager
+
+        if action == "start":
+            res = service_manager.start_background_service()
+        elif action == "stop":
+            res = service_manager.stop_background_service()
+        elif action == "restart":
+            service_manager.stop_background_service()
+            time.sleep(1.0)
+            res = service_manager.start_background_service()
+        else:
+            return jsonify({"ok": False, "error": f"Unknown action: {action}"}), 400
+
+        return jsonify(res), 200
+    except Exception as exc:
+        logger.exception("POST /api/service/control failed")
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+# ---------------------------------------------------------------------------
 # Error handlers
 # ---------------------------------------------------------------------------
 
