@@ -79,7 +79,7 @@ A lightweight, modern desktop web dashboard for monitoring, diagnosing, and mana
 
 ## 🚀 Quick Start (Windows)
 
-### 🖥️ Option A: 1-Click Server Installer (Plex Server / Home Server)
+### 🖥️ Option A: 1-Click Server Installer (Home Server)
 
 For installing on a Plex media server or any dedicated Windows machine:
 1. Download or copy **`NestWifiProDashboard-Setup.exe`** to your server.
