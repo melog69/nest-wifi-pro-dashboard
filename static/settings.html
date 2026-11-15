@@ -544,7 +544,7 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
         Sync Router
       </button>
-      <button class="save-btn" id="globalSaveBtn" onclick="saveCurrentSection()">
+      <button class="save-btn" id="globalSaveBtn" onclick="saveCurrentSection()" style="display:none">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2l11 0 5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         Save Changes
       </button>
@@ -600,52 +600,40 @@
       <section class="settings-section active" id="section-dns">
         <div class="section-heading">DNS Settings</div>
 
-        <div class="info-banner">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          DNS changes are saved to this dashboard session. For permanent changes, apply them in the Google Home app under <strong>Wi-Fi → Settings → Advanced networking</strong>.
+        <div style="margin: 0 0 1.25rem 0; padding: 0.85rem 1.15rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.22); border-radius: 8px; font-size: 0.83rem; line-height: 1.5; color: var(--text-secondary);">
+          <strong style="color: #60a5fa; display: inline-flex; align-items: center; gap: 5px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Read-Only Monitor:
+          </strong>
+          Google Nest Wifi firmware restricts DNS modifications to the official <strong>Google Home mobile app</strong> (Wi-Fi &rarr; Settings &rarr; Advanced networking &rarr; DNS). Active DNS resolution servers detected on your network are displayed below.
         </div>
 
         <div class="card">
           <div class="card-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-            DNS Configuration
+            Active DNS Configuration
           </div>
 
           <div class="form-row">
             <div class="form-label-wrap">
               <span class="form-label">DNS Mode</span>
-              <span class="form-hint">Auto uses ISP-provided DNS; Custom allows manual servers</span>
+              <span class="form-hint">Automatic uses ISP upstream DNS; Custom uses assigned DNS resolvers</span>
             </div>
-            <select class="form-input" id="dns_mode">
-              <option value="auto">Automatic (ISP)</option>
-              <option value="custom" selected>Custom</option>
-            </select>
+            <span class="badge badge-blue" id="disp_dns_mode">CUSTOM</span>
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
               <span class="form-label">Primary DNS</span>
-              <span class="form-hint">e.g. 9.9.9.9 (Quad9), 1.1.1.1 (Cloudflare), 8.8.8.8 (Google)</span>
+              <span class="form-hint">Primary resolution server</span>
             </div>
-            <input class="form-input mono" id="dns_primary" type="text" placeholder="9.9.9.9" value="9.9.9.9">
+            <span class="mono" id="disp_dns_primary" style="font-size:0.92rem;font-weight:600;color:var(--text-primary)">9.9.9.9</span>
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
               <span class="form-label">Secondary DNS</span>
               <span class="form-hint">Fallback DNS server</span>
             </div>
-            <input class="form-input mono" id="dns_secondary" type="text" placeholder="1.1.1.1" value="1.1.1.1">
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title" style="margin-bottom:0.5rem">Popular DNS Presets</div>
-          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem">
-            <button class="btn btn-sm" onclick="applyDNSPreset('9.9.9.9','149.112.112.112','Quad9')">Quad9 (Privacy)</button>
-            <button class="btn btn-sm" onclick="applyDNSPreset('1.1.1.1','1.0.0.1','Cloudflare')">Cloudflare (Fast)</button>
-            <button class="btn btn-sm" onclick="applyDNSPreset('8.8.8.8','8.8.4.4','Google')">Google Public DNS</button>
-            <button class="btn btn-sm" onclick="applyDNSPreset('208.67.222.222','208.67.220.220','OpenDNS')">OpenDNS (Family)</button>
-            <button class="btn btn-sm" onclick="applyDNSPreset('76.76.2.0','76.76.10.0','ControlD')">ControlD</button>
-            <button class="btn btn-sm" onclick="applyDNSPreset('94.140.14.14','94.140.15.15','AdGuard')">AdGuard DNS</button>
+            <span class="mono" id="disp_dns_secondary" style="font-size:0.92rem;font-weight:600;color:var(--text-primary)">1.1.1.1</span>
           </div>
         </div>
       </section>
@@ -654,15 +642,18 @@
       <section class="settings-section" id="section-dhcp">
         <div class="section-heading">DHCP &amp; IP Reservations</div>
 
-        <div class="info-banner">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Active DHCP reservations and pool settings are loaded directly from your Google Nest Wifi router.
+        <div style="margin: 0 0 1.25rem 0; padding: 0.85rem 1.15rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.22); border-radius: 8px; font-size: 0.83rem; line-height: 1.5; color: var(--text-secondary);">
+          <strong style="color: #60a5fa; display: inline-flex; align-items: center; gap: 5px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Read-Only Monitor:
+          </strong>
+          Google Nest Wifi firmware restricts DHCP pool and IP reservation changes to the official <strong>Google Home mobile app</strong> (Wi-Fi &rarr; Settings &rarr; Advanced networking &rarr; DHCP). Live values synced from your router are shown below.
         </div>
 
         <div class="card">
           <div class="card-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-            DHCP Server Settings
+            DHCP Server Status
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
@@ -670,48 +661,37 @@
               <span class="form-hint">Auto-discovered LAN IP address for your primary Nest Wifi Pro node</span>
             </div>
             <div style="display:flex;align-items:center;gap:0.5rem">
-              <input class="form-input mono" id="dhcp_router_ip" type="text" placeholder="192.168.1.1" value="192.168.1.1" readonly style="background:var(--card-subtle);cursor:default">
-              <span class="badge badge-green" style="white-space:nowrap;padding:0.3rem 0.6rem;font-size:0.75rem">Auto-Discovered</span>
+              <span class="mono" id="disp_dhcp_router_ip" style="font-size:0.92rem;font-weight:600;color:var(--text-primary)">192.168.1.1</span>
+              <span class="badge badge-green" style="white-space:nowrap;padding:0.25rem 0.55rem;font-size:0.75rem">Auto-Discovered</span>
             </div>
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
-              <span class="form-label">DHCP Enabled</span>
+              <span class="form-label">DHCP Server Status</span>
               <span class="form-hint">Assign IP addresses automatically to connected devices</span>
             </div>
-            <label class="toggle-wrap">
-              <span class="toggle">
-                <input type="checkbox" id="dhcp_enabled" checked>
-                <span class="toggle-slider"></span>
-              </span>
-            </label>
+            <span class="badge badge-green" id="disp_dhcp_enabled">Active</span>
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
-              <span class="form-label">DHCP Start IP</span>
-              <span class="form-hint">First address in the DHCP pool</span>
+              <span class="form-label">DHCP Pool Range</span>
+              <span class="form-hint">Allocated address pool for client devices</span>
             </div>
-            <input class="form-input mono" id="dhcp_start" type="text" placeholder="192.168.1.100" value="192.168.1.100">
+            <span class="mono" id="disp_dhcp_range" style="font-size:0.92rem;font-weight:600;color:var(--text-primary)">192.168.1.100 &ndash; 192.168.1.200</span>
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
-              <span class="form-label">DHCP End IP</span>
-              <span class="form-hint">Last address in the DHCP pool</span>
+              <span class="form-label">Subnet Mask</span>
+              <span class="form-hint">Local network subnet boundary</span>
             </div>
-            <input class="form-input mono" id="dhcp_end" type="text" placeholder="192.168.1.200" value="192.168.1.200">
+            <span class="mono" id="disp_dhcp_subnet" style="font-size:0.92rem;color:var(--text-primary)">255.255.255.0 (/24)</span>
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
               <span class="form-label">Lease Time</span>
-              <span class="form-hint">How long an IP address is assigned to a device</span>
+              <span class="form-hint">DHCP lease duration</span>
             </div>
-            <select class="form-input" id="dhcp_lease">
-              <option value="1">1 hour</option>
-              <option value="8">8 hours</option>
-              <option value="24" selected>24 hours</option>
-              <option value="48">48 hours</option>
-              <option value="168">1 week</option>
-            </select>
+            <span id="disp_dhcp_lease" style="font-size:0.92rem;font-weight:500;color:var(--text-primary)">24 hours</span>
           </div>
         </div>
 
@@ -796,6 +776,14 @@
       <section class="settings-section" id="section-wifi">
         <div class="section-heading">Wi-Fi Settings</div>
 
+        <div style="margin: 0 0 1.25rem 0; padding: 0.85rem 1.15rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.22); border-radius: 8px; font-size: 0.83rem; line-height: 1.5; color: var(--text-secondary);">
+          <strong style="color: #60a5fa; display: inline-flex; align-items: center; gap: 5px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Read-Only Monitor:
+          </strong>
+          Google Nest Wifi firmware restricts Wi-Fi SSID, channel width, and mesh radio controls to the official <strong>Google Home mobile app</strong> (Wi-Fi &rarr; Network settings). Live wireless specifications are displayed below.
+        </div>
+
         <div class="card">
           <div class="card-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
@@ -804,67 +792,48 @@
           <div class="form-row">
             <div class="form-label-wrap">
               <span class="form-label">Network Name (SSID)</span>
-              <span class="form-hint">Your Wi-Fi network name visible to devices</span>
+              <span class="form-hint">Broadcast name for your tri-band mesh network</span>
             </div>
-            <input class="form-input" id="wifi_ssid" type="text" placeholder="ThomassaurusRex" value="ThomassaurusRex">
+            <span class="mono" id="disp_wifi_ssid" style="font-size:0.95rem;font-weight:600;color:var(--text-primary)">ThomassaurusRex</span>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-title">Band &amp; Channel Settings</div>
+          <div class="card-title">Band &amp; Radio Specifications</div>
           <div class="form-row">
             <div class="form-label-wrap">
               <span class="form-label">Band Steering</span>
-              <span class="form-hint">Automatically move devices to the best available band (2.4 / 5 / 6 GHz)</span>
+              <span class="form-hint">Automatically steers devices to the optimal frequency band (2.4 / 5 / 6 GHz)</span>
             </div>
-            <label class="toggle-wrap">
-              <span class="toggle">
-                <input type="checkbox" id="wifi_band_steering" checked>
-                <span class="toggle-slider"></span>
-              </span>
-            </label>
+            <span class="badge badge-green" id="disp_wifi_band_steering">Enabled (Auto)</span>
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
               <span class="form-label">6 GHz Channel Width</span>
-              <span class="form-hint">Wider channels = higher speeds but more interference</span>
+              <span class="form-hint">Wi-Fi 6E high-throughput band</span>
             </div>
-            <select class="form-input" id="wifi_cw_6g">
-              <option value="80" selected>80 MHz</option>
-              <option value="160">160 MHz</option>
-              <option value="320">320 MHz</option>
-            </select>
+            <span class="chip chip-neutral" id="disp_wifi_cw_6g">80 MHz (Tri-Band)</span>
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
               <span class="form-label">5 GHz Channel Width</span>
+              <span class="form-hint">Standard high-speed frequency</span>
             </div>
-            <select class="form-input" id="wifi_cw_5g">
-              <option value="40">40 MHz</option>
-              <option value="80" selected>80 MHz</option>
-              <option value="160">160 MHz</option>
-            </select>
+            <span class="chip chip-neutral" id="disp_wifi_cw_5g">80 MHz</span>
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
               <span class="form-label">2.4 GHz Channel Width</span>
+              <span class="form-hint">Long-range IoT &amp; legacy frequency</span>
             </div>
-            <select class="form-input" id="wifi_cw_2g">
-              <option value="20" selected>20 MHz</option>
-              <option value="40">40 MHz</option>
-            </select>
+            <span class="chip chip-neutral" id="disp_wifi_cw_2g">20 MHz</span>
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
               <span class="form-label">Transmit Power</span>
-              <span class="form-hint">Auto adjusts for mesh backhaul efficiency</span>
+              <span class="form-hint">Auto-managed for mesh backhaul stability</span>
             </div>
-            <select class="form-input" id="wifi_tx_power">
-              <option value="auto" selected>Auto</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
+            <span class="badge badge-blue" id="disp_wifi_tx_power">Auto Optimized</span>
           </div>
         </div>
       </section>
@@ -873,66 +842,53 @@
       <section class="settings-section" id="section-security">
         <div class="section-heading">Security &amp; Firewall</div>
 
-        <div class="card">
-          <div class="card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Firewall &amp; Access Control
-          </div>
-          <div class="form-row">
-            <div class="form-label-wrap">
-              <span class="form-label">Firewall</span>
-              <span class="form-hint">Block unsolicited inbound traffic from the internet</span>
-            </div>
-            <label class="toggle-wrap">
-              <span class="toggle"><input type="checkbox" id="sec_firewall" checked><span class="toggle-slider"></span></span>
-            </label>
-          </div>
-          <div class="form-row">
-            <div class="form-label-wrap">
-              <span class="form-label">WPA3 Security</span>
-              <span class="form-hint">Enhanced Wi-Fi encryption (backward-compatible)</span>
-            </div>
-            <label class="toggle-wrap">
-              <span class="toggle"><input type="checkbox" id="sec_wpa3" checked><span class="toggle-slider"></span></span>
-            </label>
-          </div>
-          <div class="form-row">
-            <div class="form-label-wrap">
-              <span class="form-label">NAT</span>
-              <span class="form-hint">Network Address Translation — required for home internet sharing</span>
-            </div>
-            <label class="toggle-wrap">
-              <span class="toggle"><input type="checkbox" id="sec_nat" checked><span class="toggle-slider"></span></span>
-            </label>
-          </div>
-          <div class="form-row">
-            <div class="form-label-wrap">
-              <span class="form-label">UPnP</span>
-              <span class="form-hint">Allow apps/games to automatically open ports (security risk)</span>
-            </div>
-            <label class="toggle-wrap">
-              <span class="toggle"><input type="checkbox" id="sec_upnp"><span class="toggle-slider"></span></span>
-            </label>
-          </div>
+        <div style="margin: 0 0 1.25rem 0; padding: 0.85rem 1.15rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.22); border-radius: 8px; font-size: 0.83rem; line-height: 1.5; color: var(--text-secondary);">
+          <strong style="color: #60a5fa; display: inline-flex; align-items: center; gap: 5px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Read-Only Monitor:
+          </strong>
+          Security parameters and firewall policies are enforced by Google Nest Wifi firmware and managed via the <strong>Google Home mobile app</strong>.
         </div>
 
         <div class="card">
-          <div class="card-title">DMZ (Demilitarized Zone)</div>
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Firewall &amp; Access Protection
+          </div>
           <div class="form-row">
             <div class="form-label-wrap">
-              <span class="form-label">Enable DMZ</span>
-              <span class="form-hint">Expose one device to the internet with no firewall protection</span>
+              <span class="form-label">Stateful Packet Inspection (SPI) Firewall</span>
+              <span class="form-hint">Blocks unsolicited inbound internet connections</span>
             </div>
-            <label class="toggle-wrap">
-              <span class="toggle"><input type="checkbox" id="sec_dmz" onchange="document.getElementById('dmz_ip_row').style.display=this.checked?'flex':'none'"><span class="toggle-slider"></span></span>
-            </label>
+            <span class="badge badge-green" id="disp_sec_firewall">Enforced</span>
           </div>
-          <div class="form-row" id="dmz_ip_row" style="display:none">
+          <div class="form-row">
             <div class="form-label-wrap">
-              <span class="form-label">DMZ Host IP</span>
-              <span class="form-hint">Local IP of the device to expose</span>
+              <span class="form-label">WPA3 Personal Security</span>
+              <span class="form-hint">Next-generation Wi-Fi encryption with WPA2 transition mode</span>
             </div>
-            <input class="form-input mono" id="sec_dmz_ip" type="text" placeholder="192.168.1.50">
+            <span class="badge badge-green" id="disp_sec_wpa3">Active</span>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">Network Address Translation (NAT)</span>
+              <span class="form-hint">Hardened IPv4 masquerading for home network isolation</span>
+            </div>
+            <span class="badge badge-green" id="disp_sec_nat">Active</span>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">UPnP (Universal Plug and Play)</span>
+              <span class="form-hint">Automatic port opening protocol</span>
+            </div>
+            <span class="badge badge-neutral" id="disp_sec_upnp">Disabled</span>
+          </div>
+          <div class="form-row">
+            <div class="form-label-wrap">
+              <span class="form-label">DMZ (Demilitarized Zone)</span>
+              <span class="form-hint">Unrestricted host passthrough</span>
+            </div>
+            <span class="badge badge-neutral" id="disp_sec_dmz">Disabled</span>
           </div>
         </div>
       </section>
@@ -941,62 +897,60 @@
       <section class="settings-section" id="section-advanced">
         <div class="section-heading">Advanced Settings</div>
 
+        <div style="margin: 0 0 1.25rem 0; padding: 0.85rem 1.15rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.22); border-radius: 8px; font-size: 0.83rem; line-height: 1.5; color: var(--text-secondary);">
+          <strong style="color: #60a5fa; display: inline-flex; align-items: center; gap: 5px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Read-Only Monitor:
+          </strong>
+          Advanced mesh networking protocols and packet processing are controlled by Google Nest Wifi cloud services and firmware.
+        </div>
+
         <div class="card">
           <div class="card-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            Network Optimization
+            Mesh &amp; Protocol Status
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
-              <span class="form-label">QoS (Quality of Service)</span>
-              <span class="form-hint">Prioritize latency-sensitive traffic like video calls and gaming</span>
+              <span class="form-label">QoS &amp; Device Prioritization</span>
+              <span class="form-hint">Dynamic real-time traffic shaping for video calls and gaming</span>
             </div>
-            <label class="toggle-wrap">
-              <span class="toggle"><input type="checkbox" id="adv_qos" checked><span class="toggle-slider"></span></span>
-            </label>
+            <span class="badge badge-green" id="disp_adv_qos">Active</span>
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
               <span class="form-label">Beamforming</span>
-              <span class="form-hint">Focus Wi-Fi signal toward connected devices</span>
+              <span class="form-hint">Directional antenna signal focus targeting active clients</span>
             </div>
-            <label class="toggle-wrap">
-              <span class="toggle"><input type="checkbox" id="adv_beamforming" checked><span class="toggle-slider"></span></span>
-            </label>
+            <span class="badge badge-green" id="disp_adv_beamforming">Active</span>
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
               <span class="form-label">MU-MIMO</span>
-              <span class="form-hint">Serve multiple devices simultaneously on 5/6 GHz</span>
+              <span class="form-hint">Multi-User Multiple Input Multiple Output simultaneous streams</span>
             </div>
-            <label class="toggle-wrap">
-              <span class="toggle"><input type="checkbox" id="adv_mumimo" checked><span class="toggle-slider"></span></span>
-            </label>
+            <span class="badge badge-green" id="disp_adv_mumimo">Active</span>
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
-              <span class="form-label">802.11r Fast Roaming</span>
-              <span class="form-hint">Seamless handoff between mesh nodes (reduces roaming latency)</span>
+              <span class="form-label">802.11k/v/r Fast Roaming</span>
+              <span class="form-hint">Zero-delay mesh client handoff between Nest Wifi Pro nodes</span>
             </div>
-            <label class="toggle-wrap">
-              <span class="toggle"><input type="checkbox" id="adv_fast_roaming" checked><span class="toggle-slider"></span></span>
-            </label>
+            <span class="badge badge-green" id="disp_adv_fast_roaming">Active</span>
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
-              <span class="form-label">IPv6</span>
-              <span class="form-hint">Enable IPv6 support (requires ISP support)</span>
+              <span class="form-label">IPv6 Protocol</span>
+              <span class="form-hint">Native IPv6 dual-stack addressing</span>
             </div>
-            <label class="toggle-wrap">
-              <span class="toggle"><input type="checkbox" id="adv_ipv6"><span class="toggle-slider"></span></span>
-            </label>
+            <span class="badge badge-neutral" id="disp_adv_ipv6">Disabled</span>
           </div>
           <div class="form-row">
             <div class="form-label-wrap">
               <span class="form-label">MTU Size</span>
-              <span class="form-hint">Maximum Transmission Unit in bytes (default: 1500)</span>
+              <span class="form-hint">Maximum Transmission Unit in bytes</span>
             </div>
-            <input class="form-input mono" id="adv_mtu" type="number" min="576" max="9000" value="1500" style="max-width:120px">
+            <span class="mono" id="disp_adv_mtu" style="font-size:0.92rem;font-weight:600;color:var(--text-primary)">1500 bytes</span>
           </div>
         </div>
       </section>
@@ -1291,6 +1245,13 @@
       document.getElementById('section-' + section).classList.add('active');
       btn.classList.add('active');
       currentSection = section;
+
+      // Only show global Save button on editable sections (Service settings)
+      const saveBtn = document.getElementById('globalSaveBtn');
+      if (saveBtn) {
+        saveBtn.style.display = (section === 'service') ? 'inline-flex' : 'none';
+      }
+
       if (section === 'service') {
         loadServiceStatus();
       }
@@ -1348,20 +1309,35 @@
       }
     }
 
+    function setText(id, text) { const el = document.getElementById(id); if (el) el.textContent = text; }
+    function setBadge(id, text, isGreen) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = text;
+        el.className = isGreen ? 'badge badge-green' : 'badge badge-neutral';
+      }
+    }
+
     function applySettingsToUI(s) {
       // DNS
       if (s.dns) {
-        setVal('dns_primary', s.dns.primary || '9.9.9.9');
-        setVal('dns_secondary', s.dns.secondary || '1.1.1.1');
-        setVal('dns_mode', s.dns.mode || 'custom');
+        setText('disp_dns_primary', s.dns.primary || '9.9.9.9');
+        setText('disp_dns_secondary', s.dns.secondary || '1.1.1.1');
+        const modeEl = document.getElementById('disp_dns_mode');
+        if (modeEl) {
+          const mode = (s.dns.mode || 'custom').toUpperCase();
+          modeEl.textContent = mode;
+          modeEl.className = mode === 'AUTO' ? 'badge badge-green' : 'badge badge-blue';
+        }
       }
       // DHCP
       if (s.dhcp) {
-        setVal('dhcp_router_ip', s.dhcp.router_ip || '192.168.1.1');
-        setChecked('dhcp_enabled', s.dhcp.enabled !== false);
-        setVal('dhcp_start', s.dhcp.start_ip || '192.168.1.100');
-        setVal('dhcp_end', s.dhcp.end_ip || '192.168.1.200');
-        setVal('dhcp_lease', String(s.dhcp.lease_time_hours || 24));
+        setText('disp_dhcp_router_ip', s.dhcp.router_ip || '192.168.1.1');
+        setBadge('disp_dhcp_enabled', s.dhcp.enabled !== false ? 'Active' : 'Disabled', s.dhcp.enabled !== false);
+        const start = s.dhcp.start_ip || '192.168.1.100';
+        const end = s.dhcp.end_ip || '192.168.1.200';
+        setText('disp_dhcp_range', `${start} – ${end}`);
+        setText('disp_dhcp_lease', `${s.dhcp.lease_time_hours || 24} hours`);
         renderReservations(s.dhcp.reservations || []);
       }
       // Ports
@@ -1370,31 +1346,30 @@
       }
       // Wi-Fi
       if (s.wifi) {
-        setVal('wifi_ssid', s.wifi.ssid || '');
-        setChecked('wifi_band_steering', s.wifi.band_steering !== false);
-        setVal('wifi_cw_6g', String(s.wifi.channel_width_6g || '80'));
-        setVal('wifi_cw_5g', String(s.wifi.channel_width_5g || '80'));
-        setVal('wifi_cw_2g', String(s.wifi.channel_width_2g || '20'));
-        setVal('wifi_tx_power', s.wifi.tx_power || 'auto');
+        setText('disp_wifi_ssid', s.wifi.ssid || 'ThomassaurusRex');
+        setBadge('disp_wifi_band_steering', s.wifi.band_steering !== false ? 'Enabled (Auto)' : 'Disabled', s.wifi.band_steering !== false);
+        setText('disp_wifi_cw_6g', `${s.wifi.channel_width_6g || 80} MHz (Tri-Band)`);
+        setText('disp_wifi_cw_5g', `${s.wifi.channel_width_5g || 80} MHz`);
+        setText('disp_wifi_cw_2g', `${s.wifi.channel_width_2g || 20} MHz`);
+        const tx = s.wifi.tx_power || 'auto';
+        setText('disp_wifi_tx_power', (tx.charAt(0).toUpperCase() + tx.slice(1)) + ' Optimized');
       }
       // Security
       if (s.security) {
-        setChecked('sec_firewall', s.security.firewall_enabled !== false);
-        setChecked('sec_wpa3', s.security.wpa3_enabled !== false);
-        setChecked('sec_nat', s.security.nat_enabled !== false);
-        setChecked('sec_upnp', s.security.upnp_enabled === true);
-        setChecked('sec_dmz', s.security.dmz_enabled === true);
-        setVal('sec_dmz_ip', s.security.dmz_ip || '');
-        document.getElementById('dmz_ip_row').style.display = s.security.dmz_enabled ? 'flex' : 'none';
+        setBadge('disp_sec_firewall', s.security.firewall_enabled !== false ? 'Enforced' : 'Disabled', s.security.firewall_enabled !== false);
+        setBadge('disp_sec_wpa3', s.security.wpa3_enabled !== false ? 'Active' : 'Disabled', s.security.wpa3_enabled !== false);
+        setBadge('disp_sec_nat', s.security.nat_enabled !== false ? 'Active' : 'Disabled', s.security.nat_enabled !== false);
+        setBadge('disp_sec_upnp', s.security.upnp_enabled ? 'Active' : 'Disabled', s.security.upnp_enabled);
+        setBadge('disp_sec_dmz', s.security.dmz_enabled ? `Active (${s.security.dmz_ip || ''})` : 'Disabled', s.security.dmz_enabled);
       }
       // Advanced
       if (s.advanced) {
-        setChecked('adv_qos', s.advanced.qos_enabled !== false);
-        setChecked('adv_beamforming', s.advanced.beamforming !== false);
-        setChecked('adv_mumimo', s.advanced.mu_mimo !== false);
-        setChecked('adv_fast_roaming', s.advanced.fast_roaming !== false);
-        setChecked('adv_ipv6', s.advanced.ipv6_enabled === true);
-        setVal('adv_mtu', String(s.advanced.mtu || 1500));
+        setBadge('disp_adv_qos', s.advanced.qos_enabled !== false ? 'Active' : 'Disabled', s.advanced.qos_enabled !== false);
+        setBadge('disp_adv_beamforming', s.advanced.beamforming !== false ? 'Active' : 'Disabled', s.advanced.beamforming !== false);
+        setBadge('disp_adv_mumimo', s.advanced.mu_mimo !== false ? 'Active' : 'Disabled', s.advanced.mu_mimo !== false);
+        setBadge('disp_adv_fast_roaming', s.advanced.fast_roaming !== false ? 'Active' : 'Disabled', s.advanced.fast_roaming !== false);
+        setBadge('disp_adv_ipv6', s.advanced.ipv6_enabled ? 'Active' : 'Disabled', s.advanced.ipv6_enabled);
+        setText('disp_adv_mtu', `${s.advanced.mtu || 1500} bytes`);
       }
     }
 
@@ -1406,48 +1381,19 @@
     // ========== SAVE ==========
     async function saveCurrentSection() {
       const btn = document.getElementById('globalSaveBtn');
-      btn.disabled = true;
-      btn.textContent = 'Saving…';
-
-      let section = currentSection;
-      let payload = {};
-
-      if (section === 'dns') {
-        payload = { primary: getVal('dns_primary'), secondary: getVal('dns_secondary'), mode: getVal('dns_mode') };
-      } else if (section === 'dhcp') {
-        payload = { enabled: getChecked('dhcp_enabled'), start_ip: getVal('dhcp_start'), end_ip: getVal('dhcp_end'), lease_time_hours: parseInt(getVal('dhcp_lease')) };
-      } else if (section === 'wifi') {
-        payload = { ssid: getVal('wifi_ssid'), band_steering: getChecked('wifi_band_steering'), channel_width_6g: getVal('wifi_cw_6g'), channel_width_5g: getVal('wifi_cw_5g'), channel_width_2g: getVal('wifi_cw_2g'), tx_power: getVal('wifi_tx_power') };
-      } else if (section === 'security') {
-        payload = { firewall_enabled: getChecked('sec_firewall'), wpa3_enabled: getChecked('sec_wpa3'), nat_enabled: getChecked('sec_nat'), upnp_enabled: getChecked('sec_upnp'), dmz_enabled: getChecked('sec_dmz'), dmz_ip: getVal('sec_dmz_ip') };
-      } else if (section === 'advanced') {
-        payload = { qos_enabled: getChecked('adv_qos'), beamforming: getChecked('adv_beamforming'), mu_mimo: getChecked('adv_mumimo'), fast_roaming: getChecked('adv_fast_roaming'), ipv6_enabled: getChecked('adv_ipv6'), mtu: parseInt(getVal('adv_mtu')) };
-      } else if (section === 'ports') {
-        showToast('Use + Add Rule / Delete buttons to manage port rules', 'info');
-        btn.disabled = false; btn.innerHTML = saveIcon() + ' Save Changes';
-        return;
-      } else if (section === 'service') {
-        const autostart = getChecked('service_autostart_toggle');
-        await toggleServiceAutostart(autostart);
-        btn.disabled = false; btn.innerHTML = saveIcon() + ' Save Changes';
+      if (currentSection === 'service') {
+        btn.disabled = true;
+        btn.textContent = 'Saving…';
+        try {
+          const autostart = getChecked('service_autostart_toggle');
+          await toggleServiceAutostart(autostart);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = saveIcon() + ' Save Changes';
+        }
         return;
       }
-
-      try {
-        const res = await fetch(`${API}/api/settings/${section}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (!data.ok) throw new Error(data.error || 'Failed');
-        showToast(`${capitalize(section)} settings saved!`, 'success');
-      } catch (err) {
-        showToast('Save failed: ' + err.message, 'error');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = saveIcon() + ' Save Changes';
-      }
+      showToast('Network settings are managed by Google Home app and are read-only.', 'info');
     }
 
     function saveIcon() {
@@ -1455,14 +1401,6 @@
     }
 
     function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-
-    // ========== DNS PRESETS ==========
-    function applyDNSPreset(primary, secondary, name) {
-      setVal('dns_primary', primary);
-      setVal('dns_secondary', secondary);
-      setVal('dns_mode', 'custom');
-      showToast(`${name} DNS preset applied — click Save Changes to confirm`, 'info');
-    }
 
     // ========== DHCP RESERVATIONS ==========
     function renderReservations(list) {
