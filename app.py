@@ -469,9 +469,14 @@ def api_service_control():
         elif action == "stop":
             res = service_manager.stop_background_service()
         elif action == "restart":
-            service_manager.stop_background_service()
-            time.sleep(1.0)
-            res = service_manager.start_background_service()
+            import threading
+            def delayed_restart():
+                time.sleep(0.5)
+                service_manager.stop_background_service()
+                time.sleep(1.2)
+                service_manager.start_background_service()
+            threading.Thread(target=delayed_restart, daemon=True).start()
+            res = {"ok": True, "message": "Service is restarting in background..."}
         else:
             return jsonify({"ok": False, "error": f"Unknown action: {action}"}), 400
 

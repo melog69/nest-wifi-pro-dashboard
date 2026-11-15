@@ -289,10 +289,25 @@ def stop_background_service() -> dict[str, Any]:
     pid = get_listening_pid(port)
     if not pid:
         if is_port_listening(port):
-            return {"ok": False, "error": f"Service is listening on port {port} but PID could not be determined."}
-        return {"ok": True, "message": "Service is not currently running."}
+            pid = os.getpid()
+        else:
+            return {"ok": True, "message": "Service is not currently running."}
 
     try:
+        if pid == os.getpid():
+            import threading
+            import time
+
+            def delayed_kill():
+                time.sleep(0.5)
+                if sys.platform == "win32":
+                    subprocess.run(f"taskkill /F /PID {pid}", shell=True, check=False)
+                else:
+                    os.kill(pid, signal.SIGTERM)
+
+            threading.Thread(target=delayed_kill, daemon=True).start()
+            return {"ok": True, "message": f"Service process (PID {pid}) stopping."}
+
         if sys.platform == "win32":
             subprocess.run(f"taskkill /F /PID {pid}", shell=True, check=False)
         else:

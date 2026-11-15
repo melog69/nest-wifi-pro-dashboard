@@ -7,6 +7,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem('nest_theme');
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = saved === 'dark' || (!saved && prefersDark) || (saved === 'auto' && prefersDark) ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
+    })();
+  </script>
 
   <style>
     /* ============================================================
@@ -108,6 +118,93 @@
       --shadow-hover: 0 4px 16px rgba(60,64,67,0.1), 0 8px 24px rgba(60,64,67,0.06);
       --shadow-modal: 0 16px 40px rgba(60,64,67,0.18), 0 4px 12px rgba(60,64,67,0.08);
     }
+
+    [data-theme="dark"] {
+      --bg-primary: #121316;
+      --bg-card: #1e1f23;
+      --bg-card-hover: #26292f;
+      --bg-subtle: #272a30;
+      --bg-hover: #2e3239;
+
+      --google-blue: #8ab4f8;
+      --google-blue-container: rgba(138, 180, 248, 0.15);
+      --google-blue-text: #8ab4f8;
+      --google-blue-border: rgba(138, 180, 248, 0.35);
+      --google-blue-hover: rgba(138, 180, 248, 0.25);
+
+      --google-green: #81c995;
+      --google-green-container: rgba(129, 201, 149, 0.15);
+      --google-green-text: #81c995;
+      --google-green-border: rgba(129, 201, 149, 0.35);
+      --google-green-hover: rgba(129, 201, 149, 0.25);
+
+      --google-amber: #fdd663;
+      --google-amber-container: rgba(253, 214, 99, 0.15);
+      --google-amber-text: #fdd663;
+      --google-amber-border: rgba(253, 214, 99, 0.35);
+      --google-amber-hover: rgba(253, 214, 99, 0.25);
+
+      --google-coral: #f28b82;
+      --google-coral-container: rgba(242, 139, 130, 0.15);
+      --google-coral-text: #f28b82;
+      --google-coral-border: rgba(242, 139, 130, 0.35);
+      --google-coral-hover: rgba(242, 139, 130, 0.25);
+
+      --google-purple: #c58af9;
+      --google-purple-container: rgba(197, 138, 249, 0.15);
+      --google-purple-text: #c58af9;
+      --google-purple-border: rgba(197, 138, 249, 0.35);
+      --google-purple-hover: rgba(197, 138, 249, 0.25);
+
+      --google-teal: #80cbc4;
+      --google-teal-container: rgba(128, 203, 196, 0.15);
+      --google-teal-text: #80cbc4;
+      --google-teal-border: rgba(128, 203, 196, 0.35);
+      --google-teal-hover: rgba(128, 203, 196, 0.25);
+
+      --google-neutral-container: #2b2e35;
+      --google-neutral-text: #e3e3e3;
+      --google-neutral-border: #3c4046;
+
+      --text-primary: #e8eaed;
+      --text-secondary: #9aa0a6;
+      --text-tertiary: #80868b;
+      --border: #33373e;
+      --border-subtle: #26292f;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+      --shadow-hover: 0 6px 20px rgba(0,0,0,0.6);
+      --shadow-modal: 0 16px 40px rgba(0,0,0,0.7);
+    }
+
+    /* Dark Mode Component Overrides */
+    [data-theme="dark"] .header { background: var(--bg-card); border-bottom-color: var(--border); }
+    [data-theme="dark"] .status-indicator { background: var(--bg-subtle); border-color: var(--border); color: var(--text-secondary); }
+    [data-theme="dark"] .btn { background: var(--bg-card); border-color: var(--border); color: var(--text-primary); }
+    [data-theme="dark"] .btn:hover { background: var(--bg-hover); border-color: var(--google-blue-border); color: var(--google-blue-text); }
+    [data-theme="dark"] .card { background: var(--bg-card); border-color: var(--border); }
+    [data-theme="dark"] .search-box { background: var(--bg-card); border-color: var(--border); color: var(--text-primary); }
+    [data-theme="dark"] .search-box input { color: var(--text-primary); }
+    [data-theme="dark"] .search-box:focus-within { background: var(--bg-card); border-color: var(--google-blue); box-shadow: 0 0 0 3px rgba(138, 180, 248, 0.2); }
+    [data-theme="dark"] .select-custom { background: var(--bg-card); border-color: var(--border); color: var(--text-primary); }
+    [data-theme="dark"] .data-table th { background: var(--bg-subtle); color: var(--text-secondary); border-bottom-color: var(--border); }
+    [data-theme="dark"] .data-table td { border-bottom-color: var(--border-subtle); color: var(--text-primary); }
+    [data-theme="dark"] .data-table tr:hover td { background: var(--bg-hover); }
+    [data-theme="dark"] .data-table-wrap { background: var(--bg-card); border-color: var(--border); }
+    [data-theme="dark"] .modal { background: var(--bg-card); border-color: var(--border); color: var(--text-primary); }
+    [data-theme="dark"] .mesh-node { background: var(--bg-card); border-color: var(--border); }
+    [data-theme="dark"] .mesh-node:hover { background: var(--bg-card-hover); border-color: var(--google-blue); }
+    [data-theme="dark"] .node-icon-circle { background: var(--bg-subtle); border-color: var(--border); }
+    [data-theme="dark"] .device-card { background: var(--bg-card); border-color: var(--border); }
+    [data-theme="dark"] .device-row { background: var(--bg-card); border-color: var(--border-subtle); }
+    [data-theme="dark"] .device-row:hover { background: var(--bg-hover); }
+    [data-theme="dark"] .column-menu { background: var(--bg-card); border-color: var(--border); }
+    [data-theme="dark"] .toast { background: var(--bg-card); border-color: var(--border); color: var(--text-primary); }
+    [data-theme="dark"] .demo-banner code { background: var(--bg-card); }
+    [data-theme="dark"] ::-webkit-scrollbar-track { background: var(--bg-primary); }
+    [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #3c4046; }
+    [data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #4f535a; }
 
     html {
       scroll-behavior: smooth;
@@ -1306,6 +1403,11 @@
       <h1>Nest Wifi Dashboard</h1>
     </div>
     <div class="header-right">
+      <button class="btn btn-sm" id="headerThemeBtn" onclick="toggleTheme()" title="Toggle Light / Dark mode" aria-label="Toggle theme">
+        <svg class="sun-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span id="headerThemeText">Theme</span>
+      </button>
       <a href="/settings" class="btn btn-sm" title="Advanced Settings" style="text-decoration:none" aria-label="Open settings page">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Settings
@@ -2308,9 +2410,63 @@
     });
 
     /* ==========================================================
+       THEME MANAGEMENT
+       ========================================================== */
+    function initTheme() {
+      const saved = localStorage.getItem('nest_theme') || 'auto';
+      setThemeMode(saved, false);
+      if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+          if ((localStorage.getItem('nest_theme') || 'auto') === 'auto') {
+            setThemeMode('auto', false);
+          }
+        });
+      }
+    }
+
+    function setThemeMode(mode, showToastMsg = true) {
+      localStorage.setItem('nest_theme', mode);
+      let effectiveTheme = mode;
+      if (mode === 'auto') {
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        effectiveTheme = prefersDark ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', effectiveTheme);
+      updateHeaderThemeBtn(effectiveTheme);
+      if (showToastMsg) {
+        const labels = { light: 'Light mode active', dark: 'Dark mode active', auto: 'System theme synchronized' };
+        showToast(labels[mode] || 'Theme updated', 'info');
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      setThemeMode(next, true);
+    }
+
+    function updateHeaderThemeBtn(effectiveTheme) {
+      const btn = document.getElementById('headerThemeBtn');
+      if (!btn) return;
+      const sun = btn.querySelector('.sun-icon');
+      const moon = btn.querySelector('.moon-icon');
+      const text = document.getElementById('headerThemeText');
+      if (effectiveTheme === 'dark') {
+        if (sun) sun.style.display = 'none';
+        if (moon) moon.style.display = 'inline-block';
+        if (text) text.textContent = 'Dark';
+      } else {
+        if (sun) sun.style.display = 'inline-block';
+        if (moon) moon.style.display = 'none';
+        if (text) text.textContent = 'Light';
+      }
+    }
+
+    /* ==========================================================
        INIT
        ========================================================== */
     document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
       fetchData();
       startAutoRefresh();
     });

@@ -7,6 +7,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem('nest_theme');
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = saved === 'dark' || (!saved && prefersDark) || (saved === 'auto' && prefersDark) ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
+    })();
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -15,6 +25,7 @@
       --bg-card: #ffffff;
       --bg-subtle: #f1f4f9;
       --bg-hover: #f1f5fa;
+      --card-subtle: #f1f4f9;
       --google-blue: #1a73e8;
       --google-blue-container: #e8f0fe;
       --google-blue-text: #1967d2;
@@ -32,6 +43,7 @@
       --google-coral-text: #c5221f;
       --google-coral-border: #fad2cf;
       --google-coral-hover: #f7c3bf;
+      --google-red: #c5221f;
       --google-neutral-container: #f1f3f4;
       --google-neutral-text: #3c4043;
       --google-neutral-border: #dadce0;
@@ -39,6 +51,7 @@
       --text-secondary: #5f6368;
       --text-tertiary: #80868b;
       --border: #e0e3e7;
+      --border-color: #e0e3e7;
       --border-subtle: #edf1f7;
       --font-stack: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --radius: 20px;
@@ -49,6 +62,44 @@
       --shadow-sm: 0 1px 2px rgba(60,64,67,0.06), 0 1px 3px rgba(60,64,67,0.04);
       --shadow-md: 0 2px 6px rgba(60,64,67,0.08), 0 4px 12px rgba(60,64,67,0.05);
       --shadow-hover: 0 4px 16px rgba(60,64,67,0.1), 0 8px 24px rgba(60,64,67,0.06);
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #121316;
+      --bg-card: #1e1f23;
+      --bg-subtle: #272a30;
+      --bg-hover: #2e3239;
+      --card-subtle: #272a30;
+      --google-blue: #8ab4f8;
+      --google-blue-container: rgba(138, 180, 248, 0.15);
+      --google-blue-text: #8ab4f8;
+      --google-blue-border: rgba(138, 180, 248, 0.35);
+      --google-green: #81c995;
+      --google-green-container: rgba(129, 201, 149, 0.15);
+      --google-green-text: #81c995;
+      --google-green-border: rgba(129, 201, 149, 0.35);
+      --google-amber: #fdd663;
+      --google-amber-container: rgba(253, 214, 99, 0.15);
+      --google-amber-text: #fdd663;
+      --google-amber-border: rgba(253, 214, 99, 0.35);
+      --google-coral: #f28b82;
+      --google-coral-container: rgba(242, 139, 130, 0.15);
+      --google-coral-text: #f28b82;
+      --google-coral-border: rgba(242, 139, 130, 0.35);
+      --google-coral-hover: rgba(242, 139, 130, 0.25);
+      --google-red: #f28b82;
+      --google-neutral-container: #2b2e35;
+      --google-neutral-text: #e3e3e3;
+      --google-neutral-border: #3c4046;
+      --text-primary: #e8eaed;
+      --text-secondary: #9aa0a6;
+      --text-tertiary: #80868b;
+      --border: #33373e;
+      --border-color: #33373e;
+      --border-subtle: #26292f;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+      --shadow-hover: 0 6px 20px rgba(0,0,0,0.6);
     }
 
     html { scroll-behavior: smooth; }
@@ -383,25 +434,106 @@
 
     .btn-danger:hover { background: var(--google-coral-hover); }
 
+    .btn-secondary {
+      background: var(--bg-subtle);
+      border-color: var(--border);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-hover);
+      border-color: var(--google-blue-border);
+      color: var(--google-blue-text);
+    }
+
     .btn-sm { padding: 0.3rem 0.75rem; font-size: 0.8rem; }
 
-    /* Status chips */
-    .chip {
+    /* Badges & Chips */
+    .badge, .chip {
       display: inline-flex;
       align-items: center;
-      gap: 0.3rem;
-      padding: 0.2rem 0.6rem;
-      border-radius: 9999px;
+      gap: 0.35rem;
+      padding: 0.22rem 0.65rem;
+      border-radius: var(--radius-pill);
       font-size: 0.75rem;
       font-weight: 500;
       white-space: nowrap;
+      transition: all var(--transition);
     }
+    .badge { font-weight: 600; }
 
-    .chip-blue { background: var(--google-blue-container); color: var(--google-blue-text); border: 1px solid var(--google-blue-border); }
-    .chip-green { background: var(--google-green-container); color: var(--google-green-text); border: 1px solid var(--google-green-border); }
-    .chip-amber { background: var(--google-amber-container); color: var(--google-amber-text); border: 1px solid var(--google-amber-border); }
-    .chip-coral { background: var(--google-coral-container); color: var(--google-coral-text); border: 1px solid var(--google-coral-border); }
-    .chip-neutral { background: var(--google-neutral-container); color: var(--google-neutral-text); border: 1px solid var(--google-neutral-border); }
+    .badge-blue, .chip-blue { background: var(--google-blue-container); color: var(--google-blue-text); border: 1px solid var(--google-blue-border); }
+    .badge-green, .chip-green { background: var(--google-green-container); color: var(--google-green-text); border: 1px solid var(--google-green-border); }
+    .badge-amber, .chip-amber { background: var(--google-amber-container); color: var(--google-amber-text); border: 1px solid var(--google-amber-border); }
+    .badge-coral, .badge-red, .chip-coral { background: var(--google-coral-container); color: var(--google-coral-text); border: 1px solid var(--google-coral-border); }
+    .badge-neutral, .chip-neutral { background: var(--google-neutral-container); color: var(--google-neutral-text); border: 1px solid var(--google-neutral-border); }
+
+    /* Theme Option Cards */
+    .theme-option-card {
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.1rem;
+      background: var(--bg-card);
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      position: relative;
+    }
+    .theme-option-card:hover {
+      border-color: var(--google-blue-border);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .theme-option-card.active {
+      border-color: var(--google-blue);
+      background: var(--google-blue-container);
+    }
+    .theme-preview-box {
+      height: 68px;
+      border-radius: 8px;
+      padding: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+    .light-preview { background: #f8fafd; border-color: #e0e3e7; }
+    .light-preview .preview-header { height: 10px; background: #ffffff; border-radius: 3px; border: 1px solid #e0e3e7; }
+    .light-preview .preview-card { height: 26px; background: #ffffff; border-radius: 5px; border: 1px solid #e0e3e7; }
+    .dark-preview { background: #121316; border-color: #33373e; }
+    .dark-preview .preview-header { height: 10px; background: #1e1f23; border-radius: 3px; border: 1px solid #33373e; }
+    .dark-preview .preview-card { height: 26px; background: #1e1f23; border-radius: 5px; border: 1px solid #33373e; }
+    .auto-preview { display: flex; flex-direction: row; padding: 0; gap: 0; border: 1px solid var(--border); }
+    .preview-split-light { flex: 1; background: #f8fafd; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #1f1f1f; font-weight: 600; }
+    .preview-split-dark { flex: 1; background: #121316; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #e8eaed; font-weight: 600; }
+    .theme-option-info { display: flex; flex-direction: column; gap: 0.2rem; }
+    .theme-option-title { font-weight: 600; font-size: 0.9rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.45rem; }
+    .theme-option-desc { font-size: 0.78rem; color: var(--text-secondary); }
+
+    /* Dark Mode Component Overrides */
+    [data-theme="dark"] .header { background: var(--bg-card); border-bottom-color: var(--border); }
+    [data-theme="dark"] .card { background: var(--bg-card); border-color: var(--border); }
+    [data-theme="dark"] .form-input { background: var(--bg-subtle); border-color: var(--border); color: var(--text-primary); }
+    [data-theme="dark"] .form-input:focus { border-color: var(--google-blue); box-shadow: 0 0 0 3px rgba(138, 180, 248, 0.2); }
+    [data-theme="dark"] .data-table th { background: var(--bg-subtle); color: var(--text-secondary); border-bottom-color: var(--border); }
+    [data-theme="dark"] .data-table td { border-bottom-color: var(--border-subtle); color: var(--text-primary); }
+    [data-theme="dark"] .data-table tr:hover td { background: var(--bg-hover); }
+    [data-theme="dark"] .data-table-wrap { background: var(--bg-card); border-color: var(--border); }
+    [data-theme="dark"] .toggle-slider { background: #3c4043; }
+    [data-theme="dark"] .toggle-slider::before { background: #e8eaed; }
+    [data-theme="dark"] .toggle input:checked + .toggle-slider { background: var(--google-blue); }
+    [data-theme="dark"] .toggle input:checked + .toggle-slider::before { background: #121316; }
+    [data-theme="dark"] .toast { background: var(--bg-card); border-color: var(--border); color: var(--text-primary); box-shadow: var(--shadow-hover); }
+    [data-theme="dark"] code { background: var(--bg-subtle); border-color: var(--border); color: var(--google-blue-text); }
+    [data-theme="dark"] .back-btn { background: var(--bg-card); border-color: var(--border); color: var(--text-primary); }
+    [data-theme="dark"] .back-btn:hover { background: var(--bg-hover); border-color: var(--google-blue-border); }
+    [data-theme="dark"] .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+    [data-theme="dark"] ::-webkit-scrollbar-track { background: var(--bg-primary); }
+    [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #3c4046; }
+    [data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #4f535a; }
 
     /* Tables */
     .data-table-wrap {
@@ -535,11 +667,16 @@
       </div>
       <h1>Advanced Settings</h1>
     </div>
-    <div style="display:flex;align-items:center;gap:0.75rem">
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
       <a href="/" class="back-btn" aria-label="Back to dashboard">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         Dashboard
       </a>
+      <button class="back-btn" id="headerThemeBtn" onclick="toggleTheme()" title="Toggle Light / Dark mode" style="cursor:pointer" aria-label="Toggle theme">
+        <svg class="sun-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span id="headerThemeText">Theme</span>
+      </button>
       <button class="back-btn" id="syncBtn" onclick="syncFromRouter()" title="Sync live rules and reservations from your router" style="cursor:pointer;border:1px solid var(--border)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
         Sync Router
@@ -586,6 +723,10 @@
       <button class="nav-item" data-section="service" onclick="showSection('service', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
         Background Service
+      </button>
+      <button class="nav-item" data-section="appearance" onclick="showSection('appearance', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        Appearance &amp; Theme
       </button>
       <button class="nav-item" data-section="advanced" onclick="showSection('advanced', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -1115,30 +1256,32 @@
           <div class="form-row">
             <div class="form-label-wrap">
               <span class="form-label">Execution State</span>
-              <span class="form-hint">Current status of the dashboard web service</span>
+              <span class="form-hint">Current live status of the dashboard web service process</span>
             </div>
             <div id="serviceStateBadge">
-              <span class="badge badge-green" style="font-weight:600">● Active &amp; Responding</span>
+              <span class="badge badge-green">● Active &amp; Responding</span>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-label-wrap">
-              <span class="form-label">Service URL</span>
-              <span class="form-hint">Local address and port where the interface is hosted</span>
+              <span class="form-label">Service URL &amp; Port</span>
+              <span class="form-hint">Local address and port where the web interface is hosted</span>
             </div>
-            <div style="display:flex;align-items:center;gap:0.75rem">
-              <span class="form-input mono" id="serviceUrlText" style="background:var(--card-subtle);display:inline-block;width:auto;min-width:180px">http://localhost:5000</span>
-              <a href="http://localhost:5000" target="_blank" class="btn btn-secondary" style="font-size:0.8rem;padding:0.4rem 0.8rem;text-decoration:none">Open Dashboard ↗</a>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
+              <a href="http://localhost:5000" id="serviceUrlLink" target="_blank" class="btn btn-secondary mono" style="font-size:0.85rem;font-weight:600;color:var(--google-blue);text-decoration:none">
+                http://localhost:5000 ↗
+              </a>
+              <span class="badge badge-neutral mono" id="servicePortText">Port 5000</span>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-label-wrap">
               <span class="form-label">Process ID (PID)</span>
-              <span class="form-hint">Operating system PID of the running instance</span>
+              <span class="form-hint">Operating system process ID assigned to the running instance</span>
             </div>
-            <span class="form-input mono" id="servicePidText" style="background:var(--card-subtle);display:inline-block;width:auto;min-width:90px">--</span>
+            <span class="badge badge-neutral mono" id="servicePidText" style="font-size:0.85rem;font-weight:600">--</span>
           </div>
 
           <div class="form-row">
@@ -1162,12 +1305,15 @@
               <span class="form-label">Run in Background on Startup</span>
               <span class="form-hint">Automatically boot the dashboard silently when you log into Windows (no console window)</span>
             </div>
-            <label class="toggle-wrap">
-              <span class="toggle">
-                <input type="checkbox" id="service_autostart_toggle" onchange="toggleServiceAutostart(this.checked)">
-                <span class="toggle-slider"></span>
-              </span>
-            </label>
+            <div style="display:flex;align-items:center;gap:0.75rem">
+              <span class="badge badge-neutral" id="serviceAutostartBadge">Disabled</span>
+              <label class="toggle-wrap">
+                <span class="toggle">
+                  <input type="checkbox" id="service_autostart_toggle" onchange="toggleServiceAutostart(this.checked)">
+                  <span class="toggle-slider"></span>
+                </span>
+              </label>
+            </div>
           </div>
 
           <div class="form-row">
@@ -1207,7 +1353,7 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
               Restart Service
             </button>
-            <button class="btn btn-secondary" onclick="controlService('stop')" style="color:var(--google-red);display:inline-flex;align-items:center;gap:0.4rem">
+            <button class="btn btn-secondary" onclick="controlService('stop')" style="color:var(--google-coral);border-color:var(--google-coral-border);display:inline-flex;align-items:center;gap:0.4rem">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
               Stop Service
             </button>
@@ -1216,13 +1362,77 @@
             </button>
           </div>
 
-          <div style="background:var(--card-subtle);padding:1rem 1.15rem;border-radius:var(--radius-sm);border:1px solid var(--border-color);font-size:0.82rem;line-height:1.7">
+          <div style="background:var(--bg-subtle);padding:1rem 1.15rem;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:0.82rem;line-height:1.7">
             <div style="font-weight:600;margin-bottom:0.35rem;color:var(--text-primary)">Generated Standalone Scripts:</div>
             <div><strong class="mono" style="color:var(--google-blue)">start_background.vbs</strong>: Silent VBScript launcher — double click to launch windowless.</div>
             <div><strong class="mono" style="color:var(--google-blue)">start_background.bat</strong>: Windows batch launcher for background execution.</div>
-            <div><strong class="mono" style="color:var(--google-red)">stop_background.bat</strong>: Stops any background process listening on port 5000.</div>
+            <div><strong class="mono" style="color:var(--google-coral)">stop_background.bat</strong>: Stops any background process listening on port 5000.</div>
             <div><strong class="mono" style="color:var(--google-green)">install_service.bat</strong>: Direct installer script to register autostart on Windows.</div>
             <div><strong class="mono" style="color:var(--text-secondary)">uninstall_service.bat</strong>: Direct script to remove autostart from Windows.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== APPEARANCE & THEME ===================== -->
+      <section class="settings-section" id="section-appearance">
+        <div class="section-heading">Appearance &amp; Theme</div>
+
+        <div class="info-banner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Choose your interface theme. The selected theme is applied immediately and persists across your dashboard sessions.
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            Color Theme Mode
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:1rem;margin-top:0.75rem">
+            <!-- Light Mode Option -->
+            <div class="theme-option-card" id="themeOptLight" onclick="setThemeMode('light')">
+              <div class="theme-preview-box light-preview">
+                <div class="preview-header"></div>
+                <div class="preview-card"></div>
+              </div>
+              <div class="theme-option-info">
+                <div class="theme-option-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                  Light Mode
+                </div>
+                <div class="theme-option-desc">Google Material pastel canvas with crisp surfaces</div>
+              </div>
+            </div>
+
+            <!-- Dark Mode Option -->
+            <div class="theme-option-card" id="themeOptDark" onclick="setThemeMode('dark')">
+              <div class="theme-preview-box dark-preview">
+                <div class="preview-header"></div>
+                <div class="preview-card"></div>
+              </div>
+              <div class="theme-option-info">
+                <div class="theme-option-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                  Dark Mode
+                </div>
+                <div class="theme-option-desc">Deep charcoal palette engineered for night viewing</div>
+              </div>
+            </div>
+
+            <!-- System Auto Option -->
+            <div class="theme-option-card" id="themeOptAuto" onclick="setThemeMode('auto')">
+              <div class="theme-preview-box auto-preview">
+                <div class="preview-split-light">Light</div>
+                <div class="preview-split-dark">Dark</div>
+              </div>
+              <div class="theme-option-info">
+                <div class="theme-option-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                  System Preference
+                </div>
+                <div class="theme-option-desc">Automatically synchronize with your Windows theme</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -1242,8 +1452,9 @@
     function showSection(section, btn) {
       document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-      document.getElementById('section-' + section).classList.add('active');
-      btn.classList.add('active');
+      const sec = document.getElementById('section-' + section);
+      if (sec) sec.classList.add('active');
+      if (btn) btn.classList.add('active');
       currentSection = section;
 
       // Only show global Save button on editable sections (Service settings)
@@ -1254,6 +1465,68 @@
 
       if (section === 'service') {
         loadServiceStatus();
+      }
+      if (section === 'appearance') {
+        const saved = localStorage.getItem('nest_theme') || 'auto';
+        updateThemeCards(saved);
+      }
+    }
+
+    // ========== THEME MANAGEMENT ==========
+    function initTheme() {
+      const saved = localStorage.getItem('nest_theme') || 'auto';
+      setThemeMode(saved, false);
+      if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+          if ((localStorage.getItem('nest_theme') || 'auto') === 'auto') {
+            setThemeMode('auto', false);
+          }
+        });
+      }
+    }
+
+    function setThemeMode(mode, showNotice = true) {
+      localStorage.setItem('nest_theme', mode);
+      let effectiveTheme = mode;
+      if (mode === 'auto') {
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        effectiveTheme = prefersDark ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', effectiveTheme);
+      updateThemeCards(mode);
+      updateHeaderThemeBtn(effectiveTheme);
+      if (showNotice) {
+        const labels = { light: 'Light mode active', dark: 'Dark mode active', auto: 'System theme synchronized' };
+        showToast(labels[mode] || 'Theme updated', 'info', 2500);
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      setThemeMode(next, true);
+    }
+
+    function updateThemeCards(mode) {
+      document.querySelectorAll('.theme-option-card').forEach(c => c.classList.remove('active'));
+      const activeCard = document.getElementById('themeOpt' + (mode.charAt(0).toUpperCase() + mode.slice(1)));
+      if (activeCard) activeCard.classList.add('active');
+    }
+
+    function updateHeaderThemeBtn(effectiveTheme) {
+      const btn = document.getElementById('headerThemeBtn');
+      if (!btn) return;
+      const sun = btn.querySelector('.sun-icon');
+      const moon = btn.querySelector('.moon-icon');
+      const text = document.getElementById('headerThemeText');
+      if (effectiveTheme === 'dark') {
+        if (sun) sun.style.display = 'none';
+        if (moon) moon.style.display = 'inline-block';
+        if (text) text.textContent = 'Dark';
+      } else {
+        if (sun) sun.style.display = 'inline-block';
+        if (moon) moon.style.display = 'none';
+        if (text) text.textContent = 'Light';
       }
     }
 
@@ -1696,17 +1969,24 @@
         const badge = document.getElementById('serviceStateBadge');
         if (badge) {
           if (data.running) {
-            badge.innerHTML = '<span class="badge badge-green" style="font-weight:600">● Running in Background</span>';
+            badge.innerHTML = '<span class="badge badge-green" style="font-weight:600"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#137333;margin-right:3px"></span> Active &amp; Responding</span>';
           } else {
             badge.innerHTML = '<span class="badge badge-neutral" style="font-weight:600">○ Stopped</span>';
           }
         }
 
-        const urlEl = document.getElementById('serviceUrlText');
-        if (urlEl) urlEl.textContent = data.url || 'http://localhost:5000';
+        const urlLink = document.getElementById('serviceUrlLink');
+        if (urlLink) {
+          const url = data.url || 'http://localhost:5000';
+          urlLink.href = url;
+          urlLink.textContent = url + ' ↗';
+        }
 
         const pidEl = document.getElementById('servicePidText');
         if (pidEl) pidEl.textContent = data.pid || data.current_pid || '--';
+
+        const portEl = document.getElementById('servicePortText');
+        if (portEl) portEl.textContent = 'Port ' + (data.port || '5000');
 
         const pyEl = document.getElementById('servicePythonPath');
         if (pyEl) pyEl.textContent = data.python_path || 'pythonw.exe';
@@ -1717,8 +1997,14 @@
         const toggle = document.getElementById('service_autostart_toggle');
         if (toggle) toggle.checked = !!data.autostart;
 
+        const autoBadge = document.getElementById('serviceAutostartBadge');
+        if (autoBadge) {
+          autoBadge.className = data.autostart ? 'badge badge-green' : 'badge badge-neutral';
+          autoBadge.textContent = data.autostart ? 'Registered in Startup' : 'Disabled';
+        }
+
         if (interactive) {
-          showToast('Service status updated', 'info', 2000);
+          showToast('Service status refreshed', 'info', 2000);
         }
       } catch (err) {
         if (interactive) showToast('Could not fetch service status: ' + err.message, 'error');
@@ -1759,6 +2045,7 @@
     }
 
     // Load on startup
+    initTheme();
     loadSettings();
     loadAuthStatus();
     loadServiceStatus();
