@@ -722,6 +722,14 @@
             <span class="chip chip-neutral" id="reservationCount" style="margin-left:auto">0 reservations</span>
           </div>
 
+          <div style="margin: 0 0 1rem 0; padding: 0.75rem 1rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.22); border-radius: 8px; font-size: 0.83rem; line-height: 1.45; color: var(--text-secondary);">
+            <strong style="color: #60a5fa; display: inline-flex; align-items: center; gap: 4px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              Router Sync Notice:
+            </strong>
+            Google Nest Wifi firmware restricts active DHCP reservation modifications to the official <strong>Google Home mobile app</strong> (Wi-Fi &rarr; Settings &rarr; Advanced networking). Deleting or adding reservations here updates this dashboard and prevents reappearance on sync. To permanently remove a lease from the physical router hardware, delete it in the Google Home app.
+          </div>
+
           <div class="data-table-wrap">
             <table class="data-table">
               <thead>
@@ -773,6 +781,14 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             Port Forwarding Rules
             <span class="chip chip-neutral" id="portRuleCount" style="margin-left:auto">0 rules</span>
+          </div>
+
+          <div style="margin: 0 0 1rem 0; padding: 0.75rem 1rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.22); border-radius: 8px; font-size: 0.83rem; line-height: 1.45; color: var(--text-secondary);">
+            <strong style="color: #60a5fa; display: inline-flex; align-items: center; gap: 4px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              Router Sync Notice:
+            </strong>
+            Google Nest Wifi firmware restricts active port forwarding modifications to the official <strong>Google Home mobile app</strong> (Wi-Fi &rarr; Settings &rarr; Advanced networking &rarr; Port management). Deleting or adding rules here updates this dashboard and filters them from sync. To permanently remove a rule from the physical router hardware, delete it in the Google Home app.
           </div>
 
           <div class="data-table-wrap">
@@ -1526,7 +1542,7 @@
           <td><code>${escHTML(r.mac)}</code></td>
           <td><code>${escHTML(r.ip)}</code></td>
           <td><span class="chip ${r.enabled !== false ? 'chip-green' : 'chip-neutral'}">${r.enabled !== false ? 'Active' : 'Disabled'}</span></td>
-          <td><button class="btn btn-danger btn-sm" onclick="removeReservation('${escHTML(r.mac)}')">Remove</button></td>
+          <td><button class="btn btn-danger btn-sm" onclick="removeReservation('${escHTML(r.mac || r.ip)}')">Remove</button></td>
         </tr>
       `).join('');
     }
@@ -1546,19 +1562,28 @@
         if (!data.ok) throw new Error(data.error);
         renderReservations(data.reservations || []);
         setVal('res_mac', ''); setVal('res_ip', ''); setVal('res_hostname', '');
-        showToast('IP reservation added', 'success');
+        if (data.cloud_synced) {
+          showToast('IP reservation added and synced!', 'success');
+        } else {
+          showToast('Reservation saved to dashboard. (Note: To activate on router hardware, also add it in the Google Home app)', 'info', 7000);
+        }
       } catch (err) {
         showToast('Failed: ' + err.message, 'error');
       }
     }
 
-    async function removeReservation(mac) {
+    async function removeReservation(macOrIp) {
+      if (!confirm(`Are you sure you want to remove this DHCP reservation (${macOrIp})?`)) return;
       try {
-        const res = await fetch(`${API}/api/settings/dhcp/reservations/${encodeURIComponent(mac)}`, { method: 'DELETE' });
+        const res = await fetch(`${API}/api/settings/dhcp/reservations/${encodeURIComponent(macOrIp)}`, { method: 'DELETE' });
         const data = await res.json();
         if (!data.ok) throw new Error(data.error);
         renderReservations(data.reservations || []);
-        showToast('Reservation removed', 'success');
+        if (data.cloud_synced) {
+          showToast('Reservation removed and synced!', 'success');
+        } else {
+          showToast('Reservation removed from dashboard. (Note: To delete from router hardware, also remove it in the Google Home app)', 'info', 7000);
+        }
       } catch (err) {
         showToast('Failed: ' + err.message, 'error');
       }
@@ -1608,7 +1633,11 @@
         if (!data.ok) throw new Error(data.error);
         renderPortRules(data.rules || []);
         ['port_name','port_ext','port_ip','port_int'].forEach(id => setVal(id, ''));
-        showToast('Port rule added', 'success');
+        if (data.cloud_synced) {
+          showToast('Port rule added and synced!', 'success');
+        } else {
+          showToast('Port rule saved to dashboard. (Note: To activate on router hardware, also add it in the Google Home app)', 'info', 7000);
+        }
       } catch (err) {
         showToast('Failed: ' + err.message, 'error');
       }
@@ -1622,12 +1651,17 @@
     }
 
     async function removePortRule(idx) {
+      if (!confirm('Are you sure you want to delete this port forwarding rule?')) return;
       try {
         const res = await fetch(`${API}/api/settings/ports/rules/${idx}`, { method: 'DELETE' });
         const data = await res.json();
         if (!data.ok) throw new Error(data.error);
         renderPortRules(data.rules || []);
-        showToast('Port rule deleted', 'success');
+        if (data.cloud_synced) {
+          showToast('Port rule deleted and synced!', 'success');
+        } else {
+          showToast('Port rule deleted from dashboard. (Note: To delete from router hardware, also remove it in the Google Home app)', 'info', 7000);
+        }
       } catch (err) {
         showToast('Failed: ' + err.message, 'error');
       }

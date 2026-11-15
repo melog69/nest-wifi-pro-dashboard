@@ -1063,6 +1063,8 @@ _SETTINGS_STORE: dict[str, Any] = {
         "headless": True,
         "port": 5000,
     },
+    "deleted_reservations": [],
+    "deleted_ports": [],
 }
 
 
@@ -1209,10 +1211,21 @@ async def get_settings(force_refresh: bool = False) -> dict[str, Any]:
                         static_mappings = lan_settings.get("staticIpMappings", [])
                         if static_mappings:
                             live_reservations = []
+                            del_res = set(r.lower() for r in _SETTINGS_STORE.get("deleted_reservations", []))
                             for m in static_mappings:
-                                st_id = m.get("stationId", "")
-                                res_ip = m.get("ipAddress", "")
+                                st_id = str(m.get("stationId", "")).strip()
+                                res_ip = str(m.get("ipAddress", "")).strip()
+                                if res_ip.lower() in del_res:
+                                    continue
+                                if st_id and st_id.lower() in del_res:
+                                    continue
+                                if st_id and st_id[:17].lower() in del_res:
+                                    continue
                                 dev = id_to_dev.get(st_id) or ip_to_dev.get(res_ip) or {}
+                                mac = dev.get("macAddress") or dev.get("mac") or ""
+                                mac_val = mac or (st_id[:17] if st_id else "00:00:00:00:00:00")
+                                if mac_val.lower() in del_res or (mac and mac.lower() in del_res):
+                                    continue
                                 hostname = (
                                     dev.get("friendlyName")
                                     or dev.get("automaticFriendlyName")
@@ -1220,9 +1233,8 @@ async def get_settings(force_refresh: bool = False) -> dict[str, Any]:
                                     or dev.get("name")
                                     or f"Device {res_ip.split('.')[-1]}"
                                 )
-                                mac = dev.get("macAddress") or dev.get("mac") or ""
                                 live_reservations.append({
-                                    "mac": mac or (st_id[:17] if st_id else "00:00:00:00:00:00"),
+                                    "mac": mac_val,
                                     "ip": res_ip,
                                     "hostname": hostname,
                                     "enabled": True,
@@ -1234,6 +1246,7 @@ async def get_settings(force_refresh: bool = False) -> dict[str, Any]:
                         exposed_ports = wan_settings.get("exposedPorts", [])
                         if pf_mappings:
                             live_rules = []
+                            del_ports = set(_SETTINGS_STORE.get("deleted_ports", []))
                             for idx, pf in enumerate(pf_mappings):
                                 wan_start = pf.get("wanStartPort", 0)
                                 wan_end = pf.get("wanEndPort", 0)
@@ -1260,6 +1273,25 @@ async def get_settings(force_refresh: bool = False) -> dict[str, Any]:
                                 if (not int_ip or int_ip == "0.0.0.0") and (dev.get("ipAddress") or dev.get("ip")):
                                     int_ip = dev.get("ipAddress") or dev.get("ip")
 
+                                ext_port_val = wan_start if (wan_start == wan_end or not wan_end) else f"{wan_start}-{wan_end}"
+                                int_port_val = lan_start if (lan_start == lan_end or not lan_end) else f"{lan_start}-{lan_end}"
+
+                                sig1 = f"{int_ip}:{ext_port_val}:{proto}"
+                                sig2 = f"{int_ip}:{ext_port_val}"
+                                sig3 = f":{ext_port_val}"
+                                sig4 = str(ext_port_val)
+                                sig5 = str(wan_start)
+                                sig6 = f":{wan_start}"
+                                if (
+                                    sig1 in del_ports
+                                    or sig2 in del_ports
+                                    or sig3 in del_ports
+                                    or sig4 in del_ports
+                                    or sig5 in del_ports
+                                    or sig6 in del_ports
+                                ):
+                                    continue
+
                                 svc = _PORT_SERVICES.get(wan_start) or _PORT_SERVICES.get(lan_start)
                                 if svc and dev_name:
                                     rule_name = f"{svc} ({dev_name})"
@@ -1270,8 +1302,8 @@ async def get_settings(force_refresh: bool = False) -> dict[str, Any]:
                                 else:
                                     rule_name = f"Port {wan_start}"
 
-                                ext_port_val = wan_start if (wan_start == wan_end or not wan_end) else f"{wan_start}-{wan_end}"
-                                int_port_val = lan_start if (lan_start == lan_end or not lan_end) else f"{lan_start}-{lan_end}"
+                                if rule_name in del_ports or (svc and svc in del_ports):
+                                    continue
 
                                 live_rules.append({
                                     "name": rule_name,
@@ -1307,29 +1339,203 @@ async def update_settings(section: str, updates: dict[str, Any]) -> dict[str, An
     }
 
 
+async def _get_primary_group_id(client) -> str | None:
+    """Quickly obtain the primary system/group ID without heavy system scanning."""
+    try:
+        await client.connect()
+        url = "https://googlehomefoyer-pa.googleapis.com/v2/groups?prettyPrint=false"
+        headers = {
+            "Authorization": f"Bearer {client._api_token}",
+            "Content-Type": "application/json; charset=utf-8",
+        }
+        resp = await client.get_api(url, headers=headers)
+        groups = resp.get("groups", [])
+        if groups:
+            return groups[0].get("id")
+    except Exception as exc:
+        logger.debug("Could not quickly resolve group ID: %s", exc)
+    return None
+
+
+async def _push_dhcp_reservations_to_cloud() -> bool:
+    """Attempt to push active DHCP reservations list to the Google Foyer Cloud API (if supported)."""
+    if config.is_demo_mode():
+        return True
+    try:
+        client = await _get_gw_client()
+        gid = await _get_primary_group_id(client)
+        if not gid:
+            return False
+
+        active_res = _SETTINGS_STORE["dhcp"]["reservations"]
+        mappings = []
+        for r in active_res:
+            if r.get("ip"):
+                mappings.append({
+                    "stationId": r.get("station_id") or r.get("mac", "").replace(":", "").lower(),
+                    "ipAddress": r.get("ip"),
+                })
+
+        payload = {
+            "groupSettings": {
+                "lanSettings": {
+                    "staticIpMappings": mappings
+                }
+            }
+        }
+
+        url = f"https://googlehomefoyer-pa.googleapis.com/v2/groups/{gid}?updateMask=groupSettings.lanSettings.staticIpMappings"
+        headers = {
+            "Authorization": f"Bearer {client._api_token}",
+            "Content-Type": "application/json; charset=utf-8",
+        }
+
+        async with client._session.put(url, headers=headers, json=payload, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+            if resp.status in (200, 201, 204):
+                logger.info("Successfully pushed %d DHCP reservations to Google Cloud", len(mappings))
+                return True
+            else:
+                logger.info("Google Foyer Cloud returned HTTP %s for DHCP reservation update (cloud mutation restricted by Google).", resp.status)
+
+    except Exception as exc:
+        logger.debug("Could not push DHCP reservations to Google Cloud: %s", exc)
+    return False
+
+
+async def _push_port_rules_to_cloud() -> bool:
+    """Attempt to push active Port Forwarding rules list to the Google Foyer Cloud API (if supported)."""
+    if config.is_demo_mode():
+        return True
+    try:
+        client = await _get_gw_client()
+        gid = await _get_primary_group_id(client)
+        if not gid:
+            return False
+
+        active_rules = _SETTINGS_STORE["ports"]["rules"]
+        pf_mappings = []
+        for r in active_rules:
+            if not r.get("enabled", True):
+                continue
+            ext_raw = str(r.get("external_port", 0))
+            int_raw = str(r.get("internal_port", ext_raw))
+            ext_port = int(ext_raw.split("-")[0]) if ext_raw.isdigit() or "-" in ext_raw else 0
+            int_port = int(int_raw.split("-")[0]) if int_raw.isdigit() or "-" in int_raw else ext_port
+            proto = str(r.get("protocol", "TCP")).upper()
+
+            pf_mappings.append({
+                "wanStartPort": ext_port,
+                "wanEndPort": ext_port,
+                "lanStartPort": int_port,
+                "lanEndPort": int_port,
+                "ipAddress": r.get("internal_ip", ""),
+                "forwardTcp": proto in ("TCP", "TCP/UDP"),
+                "forwardUdp": proto in ("UDP", "TCP/UDP"),
+            })
+
+        payload = {
+            "groupSettings": {
+                "wanSettings": {
+                    "portForwardingMappings": pf_mappings
+                }
+            }
+        }
+
+        url = f"https://googlehomefoyer-pa.googleapis.com/v2/groups/{gid}?updateMask=groupSettings.wanSettings.portForwardingMappings"
+        headers = {
+            "Authorization": f"Bearer {client._api_token}",
+            "Content-Type": "application/json; charset=utf-8",
+        }
+
+        async with client._session.put(url, headers=headers, json=payload, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+            if resp.status in (200, 201, 204):
+                logger.info("Successfully pushed %d port forwarding rules to Google Cloud", len(pf_mappings))
+                return True
+            else:
+                logger.info("Google Foyer Cloud returned HTTP %s for port forwarding update (cloud mutation restricted by Google).", resp.status)
+
+    except Exception as exc:
+        logger.debug("Could not push port forwarding rules to Google Cloud: %s", exc)
+    return False
+
+
 async def add_dhcp_reservation(mac: str, ip: str, hostname: str) -> dict[str, Any]:
-    """Add a DHCP IP reservation."""
+    """Add or update a DHCP IP reservation."""
+    _SETTINGS_STORE.setdefault("deleted_reservations", [])
+    _SETTINGS_STORE["deleted_reservations"] = [
+        x for x in _SETTINGS_STORE["deleted_reservations"]
+        if x.lower() not in (mac.lower(), ip.lower())
+    ]
+
     reservations = _SETTINGS_STORE["dhcp"]["reservations"]
-    # Check for duplicate MAC
     for r in reservations:
         if r["mac"].lower() == mac.lower():
             r.update({"ip": ip, "hostname": hostname})
             _save_settings_store()
-            return {"ok": True, "message": "Reservation updated", "reservations": reservations}
+            cloud_synced = await _push_dhcp_reservations_to_cloud()
+            return {
+                "ok": True,
+                "message": "Reservation updated",
+                "cloud_synced": cloud_synced,
+                "reservations": reservations
+            }
+
     reservations.append({"mac": mac, "ip": ip, "hostname": hostname, "enabled": True})
     _save_settings_store()
-    return {"ok": True, "message": "Reservation added", "reservations": reservations}
+    cloud_synced = await _push_dhcp_reservations_to_cloud()
+    return {
+        "ok": True,
+        "message": "Reservation added",
+        "cloud_synced": cloud_synced,
+        "reservations": reservations
+    }
 
 
 async def remove_dhcp_reservation(mac: str) -> dict[str, Any]:
-    """Remove a DHCP IP reservation by MAC address."""
-    before = len(_SETTINGS_STORE["dhcp"]["reservations"])
+    """Remove a DHCP IP reservation by MAC, station ID, or IP address."""
+    reservations = _SETTINGS_STORE["dhcp"]["reservations"]
+    target_ip = None
+    target_mac = mac.lower()
+    target_station_id = None
+    for r in reservations:
+        if (
+            r.get("mac", "").lower() == target_mac
+            or r.get("ip") == mac
+            or (r.get("station_id") and r.get("station_id", "").lower() == target_mac)
+        ):
+            target_ip = r.get("ip")
+            target_mac = r.get("mac", "").lower()
+            target_station_id = r.get("station_id", "").lower() if r.get("station_id") else None
+            break
+
+    # Record in tombstone list so subsequent router syncs will not resurrect it
+    _SETTINGS_STORE.setdefault("deleted_reservations", [])
+    for ident in (target_mac, target_ip, target_station_id, mac.lower()):
+        if ident and ident not in _SETTINGS_STORE["deleted_reservations"]:
+            _SETTINGS_STORE["deleted_reservations"].append(ident)
+
+    before = len(reservations)
     _SETTINGS_STORE["dhcp"]["reservations"] = [
-        r for r in _SETTINGS_STORE["dhcp"]["reservations"] if r["mac"].lower() != mac.lower()
+        r for r in reservations
+        if (
+            r.get("mac", "").lower() != target_mac
+            and r.get("ip") != mac
+            and (not target_ip or r.get("ip") != target_ip)
+            and (not target_station_id or r.get("station_id", "").lower() != target_station_id)
+        )
     ]
     removed = before - len(_SETTINGS_STORE["dhcp"]["reservations"])
     _save_settings_store()
-    return {"ok": True, "removed": removed, "reservations": _SETTINGS_STORE["dhcp"]["reservations"]}
+
+    # Attempt cloud push (if supported)
+    cloud_synced = await _push_dhcp_reservations_to_cloud()
+    return {
+        "ok": True,
+        "removed": removed,
+        "cloud_synced": cloud_synced,
+        "reservations": _SETTINGS_STORE["dhcp"]["reservations"],
+        "message": "Reservation deleted locally" + (" and synced" if cloud_synced else "")
+    }
 
 
 async def add_port_rule(rule: dict[str, Any]) -> dict[str, Any]:
@@ -1338,9 +1544,28 @@ async def add_port_rule(rule: dict[str, Any]) -> dict[str, Any]:
     if not required.issubset(rule.keys()):
         return {"ok": False, "error": f"Missing fields: {required - set(rule.keys())}"}
     rule.setdefault("enabled", True)
+
+    _SETTINGS_STORE.setdefault("deleted_ports", [])
+    sigs_to_remove = {
+        f"{rule.get('internal_ip')}:{rule.get('external_port')}:{rule.get('protocol')}",
+        f"{rule.get('internal_ip')}:{rule.get('external_port')}",
+        f":{rule.get('external_port')}",
+        str(rule.get("external_port", "")),
+        rule.get("name", ""),
+    }
+    _SETTINGS_STORE["deleted_ports"] = [
+        s for s in _SETTINGS_STORE["deleted_ports"] if s not in sigs_to_remove
+    ]
+
     _SETTINGS_STORE["ports"]["rules"].append(rule)
     _save_settings_store()
-    return {"ok": True, "message": "Port rule added", "rules": _SETTINGS_STORE["ports"]["rules"]}
+    cloud_synced = await _push_port_rules_to_cloud()
+    return {
+        "ok": True,
+        "message": "Port rule added",
+        "cloud_synced": cloud_synced,
+        "rules": _SETTINGS_STORE["ports"]["rules"]
+    }
 
 
 async def remove_port_rule(idx: int) -> dict[str, Any]:
@@ -1349,5 +1574,31 @@ async def remove_port_rule(idx: int) -> dict[str, Any]:
     if idx < 0 or idx >= len(rules):
         return {"ok": False, "error": f"Rule index {idx} out of range"}
     removed = rules.pop(idx)
+
+    # Record all possible signatures in tombstone list so router syncs will not resurrect it
+    _SETTINGS_STORE.setdefault("deleted_ports", [])
+    int_ip = removed.get("internal_ip", "")
+    ext_port = str(removed.get("external_port", ""))
+    int_port = str(removed.get("internal_port", ext_port))
+    proto = str(removed.get("protocol", "TCP")).upper()
+    name = removed.get("name", "")
+
+    sigs = [
+        f"{int_ip}:{ext_port}:{proto}",
+        f"{int_ip}:{ext_port}",
+        f":{ext_port}",
+        str(ext_port),
+        name,
+    ]
+    for s in sigs:
+        if s and s not in _SETTINGS_STORE["deleted_ports"]:
+            _SETTINGS_STORE["deleted_ports"].append(s)
+
     _save_settings_store()
-    return {"ok": True, "message": f"Rule '{removed['name']}' removed", "rules": rules}
+    cloud_synced = await _push_port_rules_to_cloud()
+    return {
+        "ok": True,
+        "message": f"Rule '{name}' removed",
+        "cloud_synced": cloud_synced,
+        "rules": rules
+    }

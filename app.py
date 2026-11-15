@@ -313,9 +313,9 @@ def api_add_dhcp_reservation():
         return jsonify({"ok": False, "error": str(exc)}), 500
 
 
-@app.route("/api/settings/dhcp/reservations/<mac>", methods=["DELETE"])
+@app.route("/api/settings/dhcp/reservations/<path:mac>", methods=["DELETE"])
 def api_remove_dhcp_reservation(mac: str):
-    """Remove a DHCP IP reservation by MAC address."""
+    """Remove a DHCP IP reservation by MAC or IP address."""
     try:
         data = _run_async(wifi_client.remove_dhcp_reservation(mac))
         return jsonify(data), 200
