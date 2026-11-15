@@ -195,6 +195,20 @@
     [data-theme="dark"] .modal { background: var(--bg-card); border-color: var(--border); color: var(--text-primary); }
     [data-theme="dark"] .mesh-node { background: var(--bg-card); border-color: var(--border); }
     [data-theme="dark"] .mesh-node:hover { background: var(--bg-card-hover); border-color: var(--google-blue); }
+    [data-theme="dark"] .mesh-node.primary {
+      border: 1.5px solid var(--google-blue);
+      background: linear-gradient(180deg, rgba(26, 115, 232, 0.16) 0%, var(--bg-card) 100%);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    [data-theme="dark"] .mesh-node.primary:hover {
+      border-color: #8ab4f8;
+      background: linear-gradient(180deg, rgba(26, 115, 232, 0.24) 0%, var(--bg-card-hover) 100%);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+    }
+    [data-theme="dark"] .mesh-node.primary .mesh-node-name { color: var(--text-primary); }
+    [data-theme="dark"] .mesh-node.primary .mesh-node-detail .label { color: var(--text-secondary); }
+    [data-theme="dark"] .mesh-node.primary .mesh-node-detail .val { color: var(--text-primary); }
+    [data-theme="dark"] .gauge-inner { background: var(--bg-card); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
     [data-theme="dark"] .node-icon-circle { background: var(--bg-subtle); border-color: var(--border); }
     [data-theme="dark"] .device-card { background: var(--bg-card); border-color: var(--border); }
     [data-theme="dark"] .device-row { background: var(--bg-card); border-color: var(--border-subtle); }
@@ -753,7 +767,68 @@
       text-align: center;
       font-size: 0.78rem;
       color: var(--text-secondary);
-      margin-bottom: 1.15rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .speed-telemetry-row {
+      display: flex;
+      justify-content: center;
+      gap: 1.25rem;
+      margin: 0.85rem 0 0.65rem;
+      padding: 0.45rem 0.75rem;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+
+    .telemetry-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+    }
+
+    .telemetry-label {
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .telemetry-value strong {
+      color: var(--text-primary);
+      font-size: 0.9rem;
+    }
+
+    .telemetry-value small {
+      color: var(--text-secondary);
+      font-size: 0.72rem;
+    }
+
+    .speed-progress-wrap {
+      width: 100%;
+      height: 5px;
+      background: var(--border-subtle);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 0.4rem 0 0.65rem;
+    }
+
+    .speed-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--google-blue), var(--google-teal));
+      border-radius: 999px;
+      transition: width 0.25s ease;
+    }
+
+    [data-theme="dark"] .speed-telemetry-row {
+      background: var(--bg-card);
+      border-color: var(--border);
+    }
+
+    [data-theme="dark"] .speed-progress-wrap {
+      background: var(--bg-subtle);
     }
 
     /* ============================================================
@@ -1478,12 +1553,17 @@
         </div>
       </div>
 
-      <!-- ──────────────── SPEED TEST ──────────────── -->
+      <!-- ──────────────── SPEED TEST (LIBRESPEED POWERED) ──────────────── -->
       <div class="card" id="speedCard">
-        <div class="card-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          Speed Test
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span style="display:inline-flex;align-items:center;gap:0.45rem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Speed Test
+          </span>
+          <span class="chip chip-blue" style="font-size:0.7rem;font-weight:600;padding:0.15rem 0.5rem">LibreSpeed</span>
         </div>
+
+        <!-- Download & Upload Speed Gauges -->
         <div class="speed-gauges">
           <div>
             <div class="gauge">
@@ -1508,11 +1588,41 @@
             <div class="gauge-label">Upload</div>
           </div>
         </div>
+
+        <!-- Ping & Jitter Telemetry (LibreSpeed) -->
+        <div class="speed-telemetry-row">
+          <div class="telemetry-item">
+            <span class="telemetry-label">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Ping
+            </span>
+            <span class="telemetry-value"><strong id="pingVal">—</strong> <small>ms</small></span>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Jitter
+            </span>
+            <span class="telemetry-value"><strong id="jitterVal">—</strong> <small>ms</small></span>
+          </div>
+        </div>
+
+        <!-- Progress Track & State -->
+        <div class="speed-progress-wrap" id="speedProgressWrap" style="display:none">
+          <div class="speed-progress-bar" id="speedProgressBar"></div>
+        </div>
         <div class="speed-meta" id="speedMeta">No speed test data</div>
-        <button class="btn btn-primary" style="width:100%" id="runSpeedBtn" onclick="runSpeedTest()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          Run Speed Test
-        </button>
+
+        <!-- Speed Actions -->
+        <div style="display:flex;gap:0.5rem;align-items:center">
+          <button class="btn btn-primary" style="flex:1;justify-content:center" id="runSpeedBtn" onclick="toggleSpeedTest()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span id="runSpeedBtnText">Run Speed Test</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="routerWanSpeedBtn" onclick="runRouterWanSpeedTest()" title="Query WAN speed test from Nest Wifi Pro via Google Cloud" style="font-size:0.8rem;padding:0.6rem 0.75rem">
+            Router WAN
+          </button>
+        </div>
       </div>
 
       <!-- ──────────────── QUICK ACTIONS ──────────────── -->
@@ -1526,18 +1636,10 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
             Restart Network
           </button>
-          <button class="btn btn-primary" onclick="runSpeedTest()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            Run Speed Test
+          <button class="btn btn-secondary" onclick="fetchData()" style="width:100%;justify-content:center;display:inline-flex;align-items:center;gap:0.45rem">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            Refresh Dashboard
           </button>
-          <button class="btn btn-warning" id="guestNetBtn" onclick="toggleGuestNetwork()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            Toggle Guest Network
-          </button>
-          <div class="guest-status" id="guestStatus">
-            <span class="status-dot offline" style="width:6px;height:6px"></span>
-            <span>Guest: Disabled</span>
-          </div>
         </div>
       </div>
 
@@ -1570,7 +1672,13 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="text" id="deviceSearch" placeholder="Search devices…" oninput="filterDevices(this.value)" aria-label="Search connected devices">
           </div>
-          <span class="device-count" id="deviceCountLabel">0 devices</span>
+          <div style="display:flex;align-items:center;gap:1.15rem;flex-wrap:wrap">
+            <label class="online-only-toggle" style="display:inline-flex;align-items:center;gap:0.45rem;cursor:pointer;font-size:0.84rem;color:var(--text-secondary);user-select:none">
+              <input type="checkbox" id="onlineOnlyToggle" onchange="applyFilterAndSort()" style="cursor:pointer;accent-color:var(--google-blue);width:16px;height:16px">
+              <span>Show online only</span>
+            </label>
+            <span class="device-count" id="deviceCountLabel">0 devices</span>
+          </div>
         </div>
         <div class="table-wrap">
           <table aria-label="Connected devices list">
@@ -1925,22 +2033,37 @@
        UPDATE: SPEED TEST
        ========================================================== */
     function updateSpeedTest(data) {
+      if (!data) return;
       const dl = data.download_mbps ?? data.download_speed ?? data.download ?? 0;
       const ul = data.upload_mbps ?? data.upload_speed ?? data.upload ?? 0;
+      const ping = data.ping_ms ?? data.ping ?? data.latency_ms ?? data.latency;
+      const jitter = data.jitter_ms ?? data.jitter;
 
-      document.getElementById('dlSpeed').textContent = dl ? dl.toFixed(1) : '—';
-      document.getElementById('ulSpeed').textContent = ul ? ul.toFixed(1) : '—';
+      const dlEl = document.getElementById('dlSpeed');
+      const ulEl = document.getElementById('ulSpeed');
+      const pingEl = document.getElementById('pingVal');
+      const jitterEl = document.getElementById('jitterVal');
+
+      if (dlEl) dlEl.textContent = dl ? Number(dl).toFixed(1) : '—';
+      if (ulEl) ulEl.textContent = ul ? Number(ul).toFixed(1) : '—';
+      if (pingEl && ping != null) pingEl.textContent = Number(ping).toFixed(0);
+      if (jitterEl && jitter != null) jitterEl.textContent = Number(jitter).toFixed(1);
 
       // Gauge percentages (assume max ~1000 Mbps)
       const dlPct = Math.min(100, (dl / 1000) * 100);
       const ulPct = Math.min(100, (ul / 1000) * 100);
-      document.getElementById('dlGauge').style.setProperty('--pct', dlPct);
-      document.getElementById('ulGauge').style.setProperty('--pct', ulPct);
+      const dlGauge = document.getElementById('dlGauge');
+      const ulGauge = document.getElementById('ulGauge');
+      if (dlGauge) dlGauge.style.setProperty('--pct', dlPct);
+      if (ulGauge) ulGauge.style.setProperty('--pct', ulPct);
 
       const tested = data.timestamp || data.last_tested || data.tested_at;
-      document.getElementById('speedMeta').textContent = tested
-        ? `Last tested: ${formatTime(tested)}`
-        : 'No recent test data';
+      const metaEl = document.getElementById('speedMeta');
+      if (metaEl) {
+        metaEl.textContent = tested
+          ? `Last tested: ${formatTime(tested)}`
+          : 'Ready for LibreSpeed test';
+      }
     }
 
     /* ==========================================================
@@ -2031,17 +2154,15 @@
     /* ==========================================================
        DEVICES: FILTER & SORT
        ========================================================== */
+    function isDeviceOnline(d) {
+      if (!d) return false;
+      const conn = (d.connection_type || d.connection || '').toUpperCase();
+      const isOffline = conn === 'NOT_APPLICABLE' || conn === 'OFFLINE' || d.connected === false || d.status === 'offline';
+      return !isOffline && (d.status === 'online' || d.online === true || (d.ip != null && !d.paused));
+    }
+
     function filterDevices(query) {
-      const q = (query || '').toLowerCase().trim();
-      filteredDevices = q
-        ? allDevices.filter(d =>
-            (d.name || d.friendly_name || '').toLowerCase().includes(q) ||
-            (d.ip_address || d.ip || '').includes(q) ||
-            (d.mac_address || d.mac || '').toLowerCase().includes(q) ||
-            (d.type || d.device_type || '').toLowerCase().includes(q)
-          )
-        : [...allDevices];
-      renderDevices();
+      applyFilterAndSort();
     }
 
     function sortDevices(col) {
@@ -2064,23 +2185,27 @@
     }
 
     function applyFilterAndSort() {
-      const q = (document.getElementById('deviceSearch').value || '').toLowerCase().trim();
+      const q = (document.getElementById('deviceSearch')?.value || '').toLowerCase().trim();
+      const onlineOnly = document.getElementById('onlineOnlyToggle')?.checked;
+
+      let baseList = onlineOnly ? allDevices.filter(isDeviceOnline) : allDevices;
+
       filteredDevices = q
-        ? allDevices.filter(d =>
+        ? baseList.filter(d =>
             (d.name || d.friendly_name || '').toLowerCase().includes(q) ||
             (d.ip_address || d.ip || '').includes(q) ||
             (d.mac_address || d.mac || '').toLowerCase().includes(q) ||
             (d.type || d.device_type || '').toLowerCase().includes(q)
           )
-        : [...allDevices];
+        : [...baseList];
 
       // Sort
       filteredDevices.sort((a, b) => {
         let aVal, bVal;
         switch (sortColumn) {
           case 'status':
-            aVal = (a.status === 'online' || a.online) ? 1 : 0;
-            bVal = (b.status === 'online' || b.online) ? 1 : 0;
+            aVal = isDeviceOnline(a) ? 1 : 0;
+            bVal = isDeviceOnline(b) ? 1 : 0;
             break;
           case 'name':
             aVal = (a.name || a.friendly_name || '').toLowerCase();
@@ -2121,8 +2246,13 @@
     function renderDevices() {
       const tbody = document.getElementById('devicesBody');
       const countLabel = document.getElementById('deviceCountLabel');
+      const onlineOnly = document.getElementById('onlineOnlyToggle')?.checked;
 
-      countLabel.textContent = `${filteredDevices.length} device${filteredDevices.length !== 1 ? 's' : ''}`;
+      if (onlineOnly) {
+        countLabel.textContent = `${filteredDevices.length} online (${allDevices.length} total)`;
+      } else {
+        countLabel.textContent = `${filteredDevices.length} device${filteredDevices.length !== 1 ? 's' : ''}`;
+      }
 
       if (filteredDevices.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No devices found</td></tr>';
@@ -2343,41 +2473,301 @@
     }
 
     /* ==========================================================
-       SPEED TEST
+       LIBRESPEED TEST ENGINE
        ========================================================== */
-    async function runSpeedTest() {
+    let speedTestRunning = false;
+    let speedTestAbortCtrl = null;
+
+    function toggleSpeedTest() {
+      if (speedTestRunning) {
+        abortSpeedTest();
+      } else {
+        runLibreSpeedTest();
+      }
+    }
+
+    function abortSpeedTest() {
+      if (speedTestAbortCtrl) {
+        speedTestAbortCtrl.abort();
+        speedTestAbortCtrl = null;
+      }
+      speedTestRunning = false;
+      resetSpeedBtn();
+      const wrap = document.getElementById('speedProgressWrap');
+      if (wrap) wrap.style.display = 'none';
+      const meta = document.getElementById('speedMeta');
+      if (meta) meta.textContent = 'Speed test cancelled';
+      showToast('Speed test aborted', 'info');
+    }
+
+    function resetSpeedBtn() {
       const btn = document.getElementById('runSpeedBtn');
-      const origHTML = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span> Running…';
+      const text = document.getElementById('runSpeedBtnText');
+      if (btn) btn.disabled = false;
+      if (text) text.textContent = 'Run Speed Test';
+    }
+
+    function setSpeedProgress(pct, statusText) {
+      const wrap = document.getElementById('speedProgressWrap');
+      const bar = document.getElementById('speedProgressBar');
+      const meta = document.getElementById('speedMeta');
+      if (wrap) wrap.style.display = 'block';
+      if (bar) bar.style.width = Math.min(100, Math.max(0, pct)) + '%';
+      if (meta && statusText) meta.textContent = statusText;
+    }
+
+    async function runLibreSpeedTest() {
+      if (speedTestRunning) return;
+      speedTestRunning = true;
+      speedTestAbortCtrl = new AbortController();
+      const signal = speedTestAbortCtrl.signal;
+
+      const btn = document.getElementById('runSpeedBtn');
+      const text = document.getElementById('runSpeedBtnText');
+      if (text) text.textContent = 'Abort Test';
+
+      // Reset displayed values
+      const dlEl = document.getElementById('dlSpeed');
+      const ulEl = document.getElementById('ulSpeed');
+      const pingEl = document.getElementById('pingVal');
+      const jitterEl = document.getElementById('jitterVal');
+      const dlGauge = document.getElementById('dlGauge');
+      const ulGauge = document.getElementById('ulGauge');
+
+      if (dlEl) dlEl.textContent = '0.0';
+      if (ulEl) ulEl.textContent = '0.0';
+      if (pingEl) pingEl.textContent = '…';
+      if (jitterEl) jitterEl.textContent = '…';
+      if (dlGauge) dlGauge.style.setProperty('--pct', 0);
+      if (ulGauge) ulGauge.style.setProperty('--pct', 0);
 
       try {
-        const res = await fetch(`${API_BASE}/api/speedtest/run`, { method: 'POST' });
-        if (!res.ok) throw new Error(`${res.status}`);
-        const data = await res.json();
-        const st = data.speed_test || data;
-        const dl = st.download_mbps ?? st.download_speed ?? st.download ?? 0;
-        const ul = st.upload_mbps ?? st.upload_speed ?? st.upload ?? 0;
+        /* ================= 1. PING & JITTER ================= */
+        setSpeedProgress(8, 'Testing latency & jitter…');
+        const rtts = [];
+        const pingRounds = 8;
 
-        updateSpeedTest(st);
-        showResultModal('Speed Test Complete', `
-          <div style="display:flex;gap:2rem;justify-content:center;margin:1rem 0">
-            <div style="text-align:center">
-              <div style="font-size:var(--fs-large);font-weight:var(--fw-bold);color:var(--accent)">${dl.toFixed(1)}</div>
-              <div style="font-size:0.8rem;color:var(--text-secondary)">Download Mbps</div>
+        for (let i = 0; i < pingRounds; i++) {
+          if (signal.aborted) throw new Error('aborted');
+          const t0 = performance.now();
+          await fetch(`${API_BASE}/api/speedtest/empty?r=${Math.random()}`, {
+            signal: signal,
+            cache: 'no-store'
+          });
+          const t1 = performance.now();
+          const rtt = Math.max(1, t1 - t0);
+          rtts.push(rtt);
+
+          const curMin = Math.min(...rtts);
+          let curJitter = 0;
+          if (rtts.length > 1) {
+            let diffSum = 0;
+            for (let j = 1; j < rtts.length; j++) {
+              diffSum += Math.abs(rtts[j] - rtts[j - 1]);
+            }
+            curJitter = diffSum / (rtts.length - 1);
+          }
+          if (pingEl) pingEl.textContent = curMin.toFixed(0);
+          if (jitterEl) jitterEl.textContent = curJitter.toFixed(1);
+          setSpeedProgress(8 + (i / pingRounds) * 15, `Testing ping (${i + 1}/${pingRounds})…`);
+          await new Promise(r => setTimeout(r, 60));
+        }
+
+        const finalPing = Math.min(...rtts);
+        let finalJitter = 0;
+        if (rtts.length > 1) {
+          let sum = 0;
+          for (let i = 1; i < rtts.length; i++) sum += Math.abs(rtts[i] - rtts[i - 1]);
+          finalJitter = sum / (rtts.length - 1);
+        }
+
+        /* ================= 2. DOWNLOAD TEST ================= */
+        setSpeedProgress(25, 'Testing download throughput…');
+        const dlDurationMs = 5500;
+        const dlStartTime = performance.now();
+        let totalDlBytes = 0;
+        let finalDlMbps = 0;
+
+        const dlInterval = setInterval(() => {
+          const elapsedSec = (performance.now() - dlStartTime) / 1000;
+          if (elapsedSec > 0.2) {
+            const currentMbps = (totalDlBytes * 8) / (elapsedSec * 1000000);
+            finalDlMbps = currentMbps;
+            if (dlEl) dlEl.textContent = currentMbps.toFixed(1);
+            if (dlGauge) dlGauge.style.setProperty('--pct', Math.min(100, (currentMbps / 1000) * 100));
+            const progress = 25 + Math.min(38, (elapsedSec / (dlDurationMs / 1000)) * 38);
+            setSpeedProgress(progress, `Testing download: ${currentMbps.toFixed(1)} Mbps…`);
+          }
+        }, 100);
+
+        const dlWorkers = [];
+        const concurrency = 3;
+        for (let c = 0; c < concurrency; c++) {
+          dlWorkers.push((async () => {
+            while ((performance.now() - dlStartTime) < dlDurationMs && !signal.aborted) {
+              try {
+                const res = await fetch(`${API_BASE}/api/speedtest/garbage?ckSize=8&r=${Math.random()}`, {
+                  signal: signal,
+                  cache: 'no-store'
+                });
+                const reader = res.body.getReader();
+                while (true) {
+                  if ((performance.now() - dlStartTime) >= dlDurationMs || signal.aborted) {
+                    await reader.cancel();
+                    break;
+                  }
+                  const { done, value } = await reader.read();
+                  if (done) break;
+                  if (value) totalDlBytes += value.byteLength;
+                }
+              } catch (e) {
+                if (signal.aborted) return;
+                break;
+              }
+            }
+          })());
+        }
+
+        await Promise.race([
+          Promise.all(dlWorkers),
+          new Promise(r => setTimeout(r, dlDurationMs + 200))
+        ]);
+        clearInterval(dlInterval);
+        const finalDlSec = Math.max(0.5, (performance.now() - dlStartTime) / 1000);
+        finalDlMbps = (totalDlBytes * 8) / (finalDlSec * 1000000);
+        if (dlEl) dlEl.textContent = finalDlMbps.toFixed(1);
+        if (dlGauge) dlGauge.style.setProperty('--pct', Math.min(100, (finalDlMbps / 1000) * 100));
+
+        /* ================= 3. UPLOAD TEST ================= */
+        if (signal.aborted) throw new Error('aborted');
+        setSpeedProgress(65, 'Testing upload throughput…');
+        const ulDurationMs = 5000;
+        const ulStartTime = performance.now();
+        let totalUlBytes = 0;
+        let finalUlMbps = 0;
+
+        // Generate 512KB payload chunk for upload
+        const payloadChunk = new Uint8Array(524288);
+        for (let i = 0; i < payloadChunk.length; i += 1024) {
+          payloadChunk[i] = (i % 255);
+        }
+
+        const ulInterval = setInterval(() => {
+          const elapsedSec = (performance.now() - ulStartTime) / 1000;
+          if (elapsedSec > 0.2) {
+            const currentMbps = (totalUlBytes * 8) / (elapsedSec * 1000000);
+            finalUlMbps = currentMbps;
+            if (ulEl) ulEl.textContent = currentMbps.toFixed(1);
+            if (ulGauge) ulGauge.style.setProperty('--pct', Math.min(100, (currentMbps / 1000) * 100));
+            const progress = 65 + Math.min(33, (elapsedSec / (ulDurationMs / 1000)) * 33);
+            setSpeedProgress(progress, `Testing upload: ${currentMbps.toFixed(1)} Mbps…`);
+          }
+        }, 100);
+
+        const ulWorkers = [];
+        for (let c = 0; c < 2; c++) {
+          ulWorkers.push((async () => {
+            while ((performance.now() - ulStartTime) < ulDurationMs && !signal.aborted) {
+              try {
+                await fetch(`${API_BASE}/api/speedtest/empty?r=${Math.random()}`, {
+                  method: 'POST',
+                  body: payloadChunk,
+                  signal: signal,
+                  cache: 'no-store'
+                });
+                totalUlBytes += payloadChunk.byteLength;
+              } catch (e) {
+                if (signal.aborted) return;
+                break;
+              }
+            }
+          })());
+        }
+
+        await Promise.race([
+          Promise.all(ulWorkers),
+          new Promise(r => setTimeout(r, ulDurationMs + 200))
+        ]);
+        clearInterval(ulInterval);
+        const finalUlSec = Math.max(0.5, (performance.now() - ulStartTime) / 1000);
+        finalUlMbps = (totalUlBytes * 8) / (finalUlSec * 1000000);
+        if (ulEl) ulEl.textContent = finalUlMbps.toFixed(1);
+        if (ulGauge) ulGauge.style.setProperty('--pct', Math.min(100, (finalUlMbps / 1000) * 100));
+
+        /* ================= 4. FINISH ================= */
+        setSpeedProgress(100, 'Speed test complete!');
+        showToast(`Speed Test: ${finalDlMbps.toFixed(1)} Mbps Down / ${finalUlMbps.toFixed(1)} Mbps Up`, 'success', 5000);
+
+        showResultModal('LibreSpeed Test Results', `
+          <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:1rem;margin:1.25rem 0;text-align:center">
+            <div style="background:var(--bg-primary);padding:1rem;border-radius:var(--radius-sm);border:1px solid var(--border)">
+              <div style="font-size:1.75rem;font-weight:700;color:var(--google-blue)">${finalDlMbps.toFixed(1)}</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary);font-weight:600">Download Mbps</div>
             </div>
-            <div style="text-align:center">
-              <div style="font-size:var(--fs-large);font-weight:var(--fw-bold);color:var(--accent)">${ul.toFixed(1)}</div>
-              <div style="font-size:0.8rem;color:var(--text-secondary)">Upload Mbps</div>
+            <div style="background:var(--bg-primary);padding:1rem;border-radius:var(--radius-sm);border:1px solid var(--border)">
+              <div style="font-size:1.75rem;font-weight:700;color:var(--google-teal)">${finalUlMbps.toFixed(1)}</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary);font-weight:600">Upload Mbps</div>
+            </div>
+            <div style="background:var(--bg-primary);padding:0.75rem;border-radius:var(--radius-sm);border:1px solid var(--border)">
+              <div style="font-size:1.35rem;font-weight:700;color:var(--text-primary)">${finalPing.toFixed(0)} <span style="font-size:0.8rem;font-weight:400">ms</span></div>
+              <div style="font-size:0.78rem;color:var(--text-secondary)">Ping Latency</div>
+            </div>
+            <div style="background:var(--bg-primary);padding:0.75rem;border-radius:var(--radius-sm);border:1px solid var(--border)">
+              <div style="font-size:1.35rem;font-weight:700;color:var(--text-primary)">${finalJitter.toFixed(1)} <span style="font-size:0.8rem;font-weight:400">ms</span></div>
+              <div style="font-size:0.78rem;color:var(--text-secondary)">Jitter</div>
             </div>
           </div>
         `);
-        showToast('Speed test completed!', 'success');
+
+        setTimeout(() => {
+          const wrap = document.getElementById('speedProgressWrap');
+          if (wrap) wrap.style.display = 'none';
+        }, 3500);
+
       } catch (err) {
-        showToast('Speed test failed', 'error');
+        if (err.message !== 'aborted') {
+          showToast('Speed test error: ' + err.message, 'error');
+          const meta = document.getElementById('speedMeta');
+          if (meta) meta.textContent = 'Test encountered an error';
+        }
       } finally {
-        btn.disabled = false;
-        btn.innerHTML = origHTML;
+        speedTestRunning = false;
+        speedTestAbortCtrl = null;
+        resetSpeedBtn();
+      }
+    }
+
+    /* Router WAN speed test fallback via Google Home API */
+    async function runRouterWanSpeedTest() {
+      const btn = document.getElementById('routerWanSpeedBtn');
+      const origText = btn ? btn.innerHTML : 'Router WAN';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Testing…';
+      }
+      setSpeedProgress(40, 'Querying Google Home WAN speed test…');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/speedtest/run`, { method: 'POST' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const st = data.speed_test || data;
+        updateSpeedTest(st);
+        setSpeedProgress(100, 'Router WAN test complete');
+        showToast('Router WAN speed updated from Google Home!', 'success');
+        setTimeout(() => {
+          const wrap = document.getElementById('speedProgressWrap');
+          if (wrap) wrap.style.display = 'none';
+        }, 3000);
+      } catch (err) {
+        showToast('Router WAN test failed: ' + err.message, 'error');
+        const meta = document.getElementById('speedMeta');
+        if (meta) meta.textContent = 'Router test failed';
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origText;
+        }
       }
     }
 

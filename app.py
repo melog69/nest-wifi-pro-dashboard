@@ -26,7 +26,7 @@ import logging
 import os
 import sys
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, Response, make_response
 from flask_cors import CORS
 
 import config
@@ -164,6 +164,46 @@ def api_speed_test_run():
     except Exception as exc:
         logger.exception("POST /api/speed-test failed")
         return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+# ============================================================================
+# LibreSpeed-compatible speed test endpoints (Ping, Jitter, Download, Upload)
+# ============================================================================
+_GARBAGE_CHUNK = os.urandom(1048576)  # 1MB pre-allocated random buffer
+
+
+@app.route("/api/speedtest/empty", methods=["GET", "POST", "HEAD"])
+def api_speedtest_empty():
+    """LibreSpeed empty endpoint used for Ping, Jitter, and Upload measurements."""
+    if request.method == "POST":
+        chunk_size = 65536
+        stream = request.stream
+        while True:
+            chunk = stream.read(chunk_size)
+            if not chunk:
+                break
+    resp = make_response("", 200)
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Connection"] = "keep-alive"
+    return resp
+
+
+@app.route("/api/speedtest/garbage", methods=["GET"])
+def api_speedtest_garbage():
+    """LibreSpeed garbage streaming endpoint for measuring Download bandwidth."""
+    ck_size = request.args.get("ckSize", default=4, type=int)
+    ck_size = max(1, min(ck_size, 32))  # Clamp between 1MB and 32MB per stream
+
+    def stream_garbage():
+        for _ in range(ck_size):
+            yield _GARBAGE_CHUNK
+
+    resp = Response(stream_garbage(), mimetype="application/octet-stream")
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Content-Disposition"] = "attachment; filename=speedtest.dat"
+    return resp
 
 
 @app.route("/api/devices/<device_id>/pause", methods=["POST"])
