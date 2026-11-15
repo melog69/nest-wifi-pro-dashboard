@@ -725,9 +725,9 @@
           <div style="margin: 0 0 1rem 0; padding: 0.75rem 1rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.22); border-radius: 8px; font-size: 0.83rem; line-height: 1.45; color: var(--text-secondary);">
             <strong style="color: #60a5fa; display: inline-flex; align-items: center; gap: 4px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-              Router Sync Notice:
+              Read-Only View:
             </strong>
-            Google Nest Wifi firmware restricts active DHCP reservation modifications to the official <strong>Google Home mobile app</strong> (Wi-Fi &rarr; Settings &rarr; Advanced networking). Deleting or adding reservations here updates this dashboard and prevents reappearance on sync. To permanently remove a lease from the physical router hardware, delete it in the Google Home app.
+            Google Nest Wifi firmware restricts DHCP reservation changes to the official <strong>Google Home mobile app</strong> (Wi-Fi &rarr; Settings &rarr; Advanced networking &rarr; DHCP IP reservations). Active reservations synced from your router are shown below.
           </div>
 
           <div class="data-table-wrap">
@@ -738,31 +738,12 @@
                   <th>MAC Address</th>
                   <th>Reserved IP</th>
                   <th>Status</th>
-                  <th>Action</th>
                 </tr>
               </thead>
               <tbody id="reservationsBody">
-                <tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:1.5rem">Loading IP reservations…</td></tr>
+                <tr><td colspan="4" style="text-align:center;color:var(--text-secondary);padding:1.5rem">Loading IP reservations…</td></tr>
               </tbody>
             </table>
-          </div>
-
-          <div class="add-form" id="addReservationForm">
-            <div class="field-group">
-              <label>Hostname</label>
-              <input class="form-input" id="res_hostname" type="text" placeholder="my-device">
-            </div>
-            <div class="field-group">
-              <label>MAC Address</label>
-              <input class="form-input mono" id="res_mac" type="text" placeholder="AA:BB:CC:DD:EE:FF">
-            </div>
-            <div class="field-group">
-              <label>Reserved IP</label>
-              <input class="form-input mono" id="res_ip" type="text" placeholder="192.168.1.50">
-            </div>
-            <button class="btn btn-primary" onclick="addReservation()" style="align-self:flex-end;white-space:nowrap">
-              + Add Reservation
-            </button>
           </div>
         </div>
       </section>
@@ -786,9 +767,9 @@
           <div style="margin: 0 0 1rem 0; padding: 0.75rem 1rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.22); border-radius: 8px; font-size: 0.83rem; line-height: 1.45; color: var(--text-secondary);">
             <strong style="color: #60a5fa; display: inline-flex; align-items: center; gap: 4px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-              Router Sync Notice:
+              Read-Only View:
             </strong>
-            Google Nest Wifi firmware restricts active port forwarding modifications to the official <strong>Google Home mobile app</strong> (Wi-Fi &rarr; Settings &rarr; Advanced networking &rarr; Port management). Deleting or adding rules here updates this dashboard and filters them from sync. To permanently remove a rule from the physical router hardware, delete it in the Google Home app.
+            Google Nest Wifi firmware restricts port forwarding changes to the official <strong>Google Home mobile app</strong> (Wi-Fi &rarr; Settings &rarr; Advanced networking &rarr; Port management). Active rules synced from your router are shown below.
           </div>
 
           <div class="data-table-wrap">
@@ -801,56 +782,12 @@
                   <th>Internal IP</th>
                   <th>Internal Port</th>
                   <th>Status</th>
-                  <th>Action</th>
                 </tr>
               </thead>
               <tbody id="portRulesBody">
-                <tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:1.5rem">Loading port forwarding rules…</td></tr>
+                <tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1.5rem">Loading port forwarding rules…</td></tr>
               </tbody>
             </table>
-          </div>
-
-          <div class="add-form">
-            <div class="field-group">
-              <label>Name</label>
-              <input class="form-input" id="port_name" type="text" placeholder="Web Server">
-            </div>
-            <div class="field-group" style="max-width:110px">
-              <label>Protocol</label>
-              <select class="form-input" id="port_proto">
-                <option>TCP</option>
-                <option>UDP</option>
-                <option>TCP/UDP</option>
-              </select>
-            </div>
-            <div class="field-group" style="max-width:120px">
-              <label>External Port</label>
-              <input class="form-input mono" id="port_ext" type="text" placeholder="8080">
-            </div>
-            <div class="field-group">
-              <label>Internal IP</label>
-              <input class="form-input mono" id="port_ip" type="text" placeholder="192.168.1.50">
-            </div>
-            <div class="field-group" style="max-width:120px">
-              <label>Internal Port</label>
-              <input class="form-input mono" id="port_int" type="text" placeholder="80">
-            </div>
-            <button class="btn btn-primary" onclick="addPortRule()" style="align-self:flex-end;white-space:nowrap">
-              + Add Rule
-            </button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">Common Port Quick-Add</div>
-          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem">
-            <button class="btn btn-sm" onclick="quickPort('HTTP Web Server','TCP','80','192.168.1.50','80')">HTTP (80)</button>
-            <button class="btn btn-sm" onclick="quickPort('HTTPS Web Server','TCP','443','192.168.1.50','443')">HTTPS (443)</button>
-            <button class="btn btn-sm" onclick="quickPort('SSH Remote Access','TCP','22','192.168.1.50','22')">SSH (22)</button>
-            <button class="btn btn-sm" onclick="quickPort('Plex Media Server','TCP','32400','192.168.1.50','32400')">Plex (32400)</button>
-            <button class="btn btn-sm" onclick="quickPort('Minecraft','TCP','25565','192.168.1.50','25565')">Minecraft (25565)</button>
-            <button class="btn btn-sm" onclick="quickPort('Wireguard VPN','UDP','51820','192.168.1.50','51820')">WireGuard (51820)</button>
-            <button class="btn btn-sm" onclick="quickPort('RDP Remote Desktop','TCP','3389','192.168.1.50','3389')">RDP (3389)</button>
           </div>
         </div>
       </section>
@@ -1533,7 +1470,7 @@
       const countEl = document.getElementById('reservationCount');
       countEl.textContent = `${list.length} reservation${list.length !== 1 ? 's' : ''}`;
       if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:1.5rem">No IP reservations configured</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);padding:1.5rem">No IP reservations configured</td></tr>';
         return;
       }
       tbody.innerHTML = list.map((r, i) => `
@@ -1542,7 +1479,6 @@
           <td><code>${escHTML(r.mac)}</code></td>
           <td><code>${escHTML(r.ip)}</code></td>
           <td><span class="chip ${r.enabled !== false ? 'chip-green' : 'chip-neutral'}">${r.enabled !== false ? 'Active' : 'Disabled'}</span></td>
-          <td><button class="btn btn-danger btn-sm" onclick="removeReservation('${escHTML(r.mac || r.ip)}')">Remove</button></td>
         </tr>
       `).join('');
     }
@@ -1595,7 +1531,7 @@
       const countEl = document.getElementById('portRuleCount');
       countEl.textContent = `${list.length} rule${list.length !== 1 ? 's' : ''}`;
       if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:1.5rem">No port forwarding rules configured</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1.5rem">No port forwarding rules configured</td></tr>';
         return;
       }
       tbody.innerHTML = list.map((r, i) => `
@@ -1606,7 +1542,6 @@
           <td><code>${escHTML(r.internal_ip)}</code></td>
           <td><code>${escHTML(String(r.internal_port))}</code></td>
           <td><span class="chip ${r.enabled !== false ? 'chip-green' : 'chip-neutral'}">${r.enabled !== false ? 'Enabled' : 'Disabled'}</span></td>
-          <td><button class="btn btn-danger btn-sm" onclick="removePortRule(${i})">Delete</button></td>
         </tr>
       `).join('');
     }
