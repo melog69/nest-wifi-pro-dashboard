@@ -1108,60 +1108,82 @@
             Connect or Refresh Google Account
           </div>
 
-          <div style="display:flex;flex-direction:column;gap:1.25rem;padding:0.5rem 0">
-            <!-- Step 1 -->
-            <div style="display:flex;gap:1rem;align-items:flex-start">
-              <div style="background:var(--google-blue-container);color:var(--google-blue-text);font-weight:700;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
-              <div style="flex:1">
-                <div style="font-weight:600;margin-bottom:0.25rem">Enter Your Google Account Email &amp; Launch Sign-In</div>
-                <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.75rem">
-                  Click the button below to open Google's official sign-in page (EmbeddedSetup) in a new browser tab.
-                </div>
-                <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
-                  <input class="form-input" id="auth_input_email" type="email" placeholder="yourname@gmail.com" style="max-width:280px">
-                  <button class="btn btn-secondary" onclick="openGoogleSignIn()" style="display:inline-flex;align-items:center;gap:0.4rem">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                    Open Google Sign-In
-                  </button>
-                </div>
-              </div>
+          <!-- OPTION 1: AUTOMATED 1-CLICK SIGN-IN -->
+          <div style="background:var(--google-blue-container);border:1px solid #c2e7ff;border-radius:var(--radius-sm);padding:1.15rem 1.25rem;margin-bottom:1.5rem">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem">
+              <span class="badge badge-blue" style="font-size:0.75rem;font-weight:700">RECOMMENDED</span>
+              <strong style="color:var(--google-blue-text);font-size:0.95rem">Option 1: 1-Click Automated Sign-In (No DevTools or Copy-Pasting)</strong>
             </div>
-
-            <!-- Step 2 -->
-            <div style="display:flex;gap:1rem;align-items:flex-start">
-              <div style="background:var(--google-blue-container);color:var(--google-blue-text);font-weight:700;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
-              <div style="flex:1">
-                <div style="font-weight:600;margin-bottom:0.25rem">Copy the Session Token Cookie (oauth_token)</div>
-                <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.45">
-                  1. In the Google window, sign in and complete 2FA. Click <em>"I agree"</em>.<br>
-                  2. When the blank/loading screen appears, press <strong>F12</strong> (Developer Tools).<br>
-                  3. Go to <strong>Application</strong> (Chrome/Edge/Brave) or <strong>Storage</strong> (Firefox) &rarr; <strong>Cookies</strong> &rarr; <code>https://accounts.google.com</code>.<br>
-                  4. Find the cookie named <strong>oauth_token</strong> (value starts with <code>oauth2_4/...</code>) and copy it.<br>
-                  <span style="display:block;margin-top:0.35rem;color:var(--text);font-weight:500"><em>Tip: You can also copy and paste the entire redirected page URL if visible!</em></span>
-                </div>
-              </div>
+            <p style="font-size:0.85rem;color:var(--google-blue-text);margin-bottom:0.85rem;line-height:1.5">
+              Launches an official Google login window. Complete your sign-in and 2FA normally — the dashboard automatically captures the required token via background protocol, exchanges it, and closes the window. Zero DevTools required!
+            </p>
+            <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+              <input class="form-input" id="auth_auto_email" type="email" placeholder="Enter your Google email..." style="max-width:280px;background:#fff">
+              <button class="btn btn-primary" id="autoAuthBtn" onclick="startAutoAuth()" style="display:inline-flex;align-items:center;gap:0.45rem">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Launch Automated Sign-In
+              </button>
             </div>
+            <div id="autoAuthStatus" style="display:none;margin-top:0.75rem;font-size:0.85rem;color:var(--google-blue-text);font-weight:500;line-height:1.4"></div>
+          </div>
 
-            <!-- Step 3 -->
-            <div style="display:flex;gap:1rem;align-items:flex-start">
-              <div style="background:var(--google-blue-container);color:var(--google-blue-text);font-weight:700;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
-              <div style="flex:1">
-                <div style="font-weight:600;margin-bottom:0.25rem">Paste Token &amp; Encrypt</div>
-                <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.75rem">
-                  Paste the cookie value or full URL below. We will immediately exchange it for a long-lived master token and encrypt it on disk.
-                </div>
-                <div style="display:flex;flex-direction:column;gap:0.75rem">
-                  <textarea class="form-input mono" id="auth_input_token" rows="2" placeholder="Paste oauth_token value (oauth2_4/...) or full redirect URL here..." style="width:100%;resize:vertical;font-size:0.85rem"></textarea>
-                  <div style="display:flex;align-items:center;gap:0.75rem">
-                    <button class="btn btn-primary" id="exchangeBtn" onclick="submitAuthExchange()" style="display:inline-flex;align-items:center;gap:0.4rem">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                      Connect &amp; Encrypt Credentials
+          <!-- OPTION 2: MANUAL / EXTENSION SIGN-IN -->
+          <div style="border-top:1px solid var(--border-color);padding-top:1.25rem">
+            <div style="font-weight:600;font-size:0.9rem;margin-bottom:0.5rem;color:var(--text-secondary)">
+              Option 2: Manual Token Entry (or Cookie-Editor Browser Extension)
+            </div>
+            <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:1rem;line-height:1.45">
+              If accessing remotely from another device, or if you prefer using your current browser:
+            </p>
+
+            <div style="display:flex;flex-direction:column;gap:1.25rem;padding:0.25rem 0">
+              <!-- Step 1 -->
+              <div style="display:flex;gap:1rem;align-items:flex-start">
+                <div style="background:var(--card-subtle);color:var(--text-secondary);font-weight:700;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.85rem">1</div>
+                <div style="flex:1">
+                  <div style="font-weight:600;margin-bottom:0.25rem;font-size:0.88rem">Open Google Setup in Your Browser</div>
+                  <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+                    <input class="form-input" id="auth_input_email" type="email" placeholder="yourname@gmail.com" style="max-width:280px">
+                    <button class="btn btn-secondary" onclick="openGoogleSignIn()" style="display:inline-flex;align-items:center;gap:0.4rem;font-size:0.82rem">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                      Open Google Sign-In Tab
                     </button>
-                    <span id="authExchangeSpinner" style="display:none;font-size:0.85rem;color:var(--text-secondary)">Exchanging token with Google…</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 2 -->
+              <div style="display:flex;gap:1rem;align-items:flex-start">
+                <div style="background:var(--card-subtle);color:var(--text-secondary);font-weight:700;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.85rem">2</div>
+                <div style="flex:1">
+                  <div style="font-weight:600;margin-bottom:0.25rem;font-size:0.88rem">Get the oauth_token (Fastest Ways)</div>
+                  <div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.5">
+                    Sign in and click <em>"I agree"</em>. When the spinning/loading screen appears, choose either:<br>
+                    <strong>• Method A (Fastest):</strong> Install the free <a href="https://cookie-editor.com" target="_blank" style="color:var(--google-blue);font-weight:600">Cookie-Editor</a> extension. Click the extension icon in your toolbar &rarr; click <code>oauth_token</code> &rarr; click Copy.<br>
+                    <strong>• Method B (DevTools):</strong> Press <strong>F12</strong> &rarr; <strong>Application</strong> / <strong>Storage</strong> &rarr; <strong>Cookies</strong> &rarr; <code>accounts.google.com</code> &rarr; copy the value of <code>oauth_token</code> (starts with <code>oauth2_4/...</code>).
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 3 -->
+              <div style="display:flex;gap:1rem;align-items:flex-start">
+                <div style="background:var(--card-subtle);color:var(--text-secondary);font-weight:700;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.85rem">3</div>
+                <div style="flex:1">
+                  <div style="font-weight:600;margin-bottom:0.25rem;font-size:0.88rem">Paste Token &amp; Encrypt</div>
+                  <div style="display:flex;flex-direction:column;gap:0.75rem">
+                    <textarea class="form-input mono" id="auth_input_token" rows="2" placeholder="Paste oauth_token value (oauth2_4/...) here..." style="width:100%;resize:vertical;font-size:0.82rem"></textarea>
+                    <div style="display:flex;align-items:center;gap:0.75rem">
+                      <button class="btn btn-primary" id="exchangeBtn" onclick="submitAuthExchange()" style="display:inline-flex;align-items:center;gap:0.4rem">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        Connect &amp; Encrypt Credentials
+                      </button>
+                      <span id="authExchangeSpinner" style="display:none;font-size:0.85rem;color:var(--text-secondary)">Exchanging token with Google…</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
 
           </div>
         </div>
@@ -1705,6 +1727,39 @@
       } finally {
         btn.disabled = false;
         if (spinner) spinner.style.display = 'none';
+      }
+    }
+
+    async function startAutoAuth() {
+      const email = (getVal('auth_auto_email') || getVal('auth_input_email') || '').trim();
+      if (!email) {
+        showToast('Please enter your Google account email first', 'error');
+        return;
+      }
+      const btn = document.getElementById('autoAuthBtn');
+      const status = document.getElementById('autoAuthStatus');
+      if (btn) btn.disabled = true;
+      if (status) {
+        status.style.display = 'block';
+        status.innerHTML = '🚀 Opening Google login window... Complete sign-in in the browser window — token is auto-detected!';
+      }
+
+      try {
+        const res = await fetch(`${API}/api/auth/auto`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || 'Automated authentication failed');
+        showToast(data.message || 'Connected successfully! Master token encrypted.', 'success', 6000);
+        await loadAuthStatus();
+        await loadSettings();
+      } catch (err) {
+        showToast(err.message, 'error', 7000);
+      } finally {
+        if (btn) btn.disabled = false;
+        if (status) status.style.display = 'none';
       }
     }
 

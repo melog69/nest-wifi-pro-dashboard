@@ -133,20 +133,23 @@ You can run the dashboard silently in the background (no console window) so it i
 
 Because Google has locked down router APIs to the Google Home mobile app, accessing your network programmatically requires authenticating via Google Play Services OAuth:
 
-1. Double-click **`setup_auth.bat`** (or run `python auth_helper.py`).
-2. Enter your Google account email address.
-3. The script opens Google's official setup endpoint:  
-   👉 `https://accounts.google.com/EmbeddedSetup`
-4. Sign in with your Google account and complete 2-Step Verification.
-5. Click **"I agree"** on any consent prompt.
-6. When the page stops at a loading/spinning screen (this is normal and expected):
-   - Press **F12** (Developer Tools).
-   - Navigate to the **Application** tab (Chrome/Edge/Brave) or **Storage** tab (Firefox).
-   - In the left sidebar, expand **Storage** ➔ **Cookies** ➔ click `https://accounts.google.com`.
-   - Find the cookie named **`oauth_token`**.
-   - Copy its value (starts with `oauth2_4/...`) and paste it into the terminal.
-7. The helper script automatically exchanges it for a permanent **Master Token** and writes it to your local `.env` file.
-8. Re-run **`start.bat`** to enjoy your live dashboard!
+### 🚀 Option 1: 1-Click Automated Sign-In (Recommended — No DevTools / No Copying)
+* **From the Settings Web UI:** Go to **Settings** ➔ **Google Account**, enter your email, and click **"Launch Automated Sign-In"**.
+* **Or via Batch Script:** Double-click **`setup_auth_auto.bat`** (or run `python auth_auto.py`).
+* A browser window opens to Google's sign-in page.
+* Complete your sign-in and 2FA normally.
+* **The token is captured automatically in the background!** The browser window closes, and your credentials are encrypted on disk via Windows DPAPI. Zero manual copying or DevTools needed.
+
+---
+
+### 📋 Option 2: Browser Extension or Manual Copy (Remote / Mobile)
+If you are accessing the dashboard from another device on your network:
+1. Open `https://accounts.google.com/EmbeddedSetup` in your browser.
+2. Sign in and click **"I agree"**.
+3. When the infinite loading spinner appears, get the `oauth_token` cookie:
+   * **Fastest (1-Click Extension):** Install the free [Cookie-Editor](https://cookie-editor.com) extension. Click its icon in your browser toolbar, click `oauth_token`, and click Copy.
+   * **DevTools (F12):** Press F12 ➔ **Application** / **Storage** ➔ **Cookies** ➔ `accounts.google.com` ➔ copy the value of `oauth_token` (`oauth2_4/...`).
+4. Paste it into the Settings tab and click **Connect & Encrypt Credentials**.
 
 ---
 

@@ -388,6 +388,26 @@ def api_auth_exchange():
         return jsonify({"ok": False, "error": f"Authentication exchange failed: {exc}"}), 500
 
 
+@app.route("/api/auth/auto", methods=["POST"])
+def api_auth_auto():
+    """Launch the 1-click automated browser login wizard to capture oauth_token."""
+    try:
+        data = request.get_json(silent=True) or {}
+        email = data.get("email", "").strip()
+        if not email:
+            return jsonify({"ok": False, "error": "Email is required"}), 400
+
+        import auth_auto
+        res = auth_auto.run_auto_auth(email=email)
+        if res.get("ok"):
+            config.reload_credentials()
+            wifi_client.reset_client()
+        return jsonify(res), (200 if res.get("ok") else 400)
+    except Exception as exc:
+        logger.exception("POST /api/auth/auto failed")
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
 @app.route("/api/auth/disconnect", methods=["POST"])
 def api_auth_disconnect():
     """Disconnect Google account and remove encrypted credentials file."""

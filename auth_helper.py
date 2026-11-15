@@ -90,22 +90,40 @@ def main() -> None:
     ).strip()
     android_id = android_id_input or default_android_id
 
-    # Step 3 — Embedded setup instructions
+    # Step 3 — Choose sign-in method
+    print()
+    print("  Choose sign-in method:")
+    print("    [1] (Recommended) 1-Click Automated Sign-In (zero DevTools / zero copy-pasting)")
+    print("    [2] Manual Entry (DevTools / Cookie-Editor extension)")
+    choice = input("  Select [1 or 2, default=1]: ").strip() or "1"
+
+    if choice == "1":
+        try:
+            import auth_auto
+            res = auth_auto.run_auto_auth(email=email, android_id=android_id)
+            if res.get("ok"):
+                print("  ✓ Authentication successful!")
+                sys.exit(0)
+            else:
+                print(f"  ✗ Automated login failed: {res.get('error')}")
+                print("  Falling back to manual method...\n")
+        except Exception as exc:
+            print(f"  ⚠ Could not run automated helper ({exc}). Falling back to manual method...\n")
+
+    # Step 4 — Embedded setup instructions (Manual fallback)
     print()
     print("  " + "─" * 60)
-    print("  Step 3: Get your oauth_token cookie")
+    print("  Manual Step: Get your oauth_token cookie")
     print("  " + "─" * 60)
     print("  1. A browser window will open to:")
     print("     https://accounts.google.com/EmbeddedSetup")
     print()
     print("  2. Sign in with your Google account and complete 2FA.")
     print("  3. Click 'I agree' on any prompt.")
-    print("  4. When you see a loading or blank page, press F12 (DevTools).")
-    print("  5. In DevTools, go to:")
-    print("     - Chrome / Edge / Brave: 'Application' tab -> 'Cookies' -> https://accounts.google.com")
-    print("     - Firefox: 'Storage' tab -> 'Cookies' -> https://accounts.google.com")
-    print("  6. Find the cookie named: oauth_token")
-    print("  7. Double-click its Value, copy it, and paste it below.")
+    print("  4. When you see a loading or blank page, get the 'oauth_token' cookie via:")
+    print("     • FASTEST: Use the 'Cookie-Editor' browser extension (1-click copy).")
+    print("     • DEVTOOLS: Press F12 -> Application -> Cookies -> accounts.google.com -> oauth_token.")
+    print("  5. Copy its Value (starts with oauth2_4/...) and paste it below.")
     print("  " + "─" * 60)
     print()
 

@@ -31,6 +31,7 @@ copy /y "%SRC%credentials.py" "!INSTALL_DIR!\" >nul
 copy /y "%SRC%service_manager.py" "!INSTALL_DIR!\" >nul
 copy /y "%SRC%wifi_client.py" "!INSTALL_DIR!\" >nul
 copy /y "%SRC%auth_helper.py" "!INSTALL_DIR!\" >nul
+copy /y "%SRC%auth_auto.py" "!INSTALL_DIR!\" >nul
 copy /y "%SRC%run.py" "!INSTALL_DIR!\" >nul
 copy /y "%SRC%requirements.txt" "!INSTALL_DIR!\" >nul
 copy /y "%SRC%.env.example" "!INSTALL_DIR!\" >nul
@@ -38,6 +39,8 @@ if exist "%SRC%LICENSE" copy /y "%SRC%LICENSE" "!INSTALL_DIR!\" >nul
 if exist "%SRC%README.md" copy /y "%SRC%README.md" "!INSTALL_DIR!\" >nul
 
 copy /y "%SRC%start.bat" "!INSTALL_DIR!\" >nul
+copy /y "%SRC%setup_auth.bat" "!INSTALL_DIR!\" >nul
+copy /y "%SRC%setup_auth_auto.bat" "!INSTALL_DIR!\" >nul
 copy /y "%SRC%start_background.vbs" "!INSTALL_DIR!\" >nul
 copy /y "%SRC%start_background.bat" "!INSTALL_DIR!\" >nul
 copy /y "%SRC%stop_background.bat" "!INSTALL_DIR!\" >nul
