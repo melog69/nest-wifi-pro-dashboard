@@ -738,6 +738,20 @@
       );
     }
 
+    #wanDlGauge {
+      background: conic-gradient(
+        var(--google-blue) calc(var(--pct, 0) * 1%),
+        var(--google-blue-container) 0
+      );
+    }
+
+    #wanUlGauge {
+      background: conic-gradient(
+        #a142f4 calc(var(--pct, 0) * 1%),
+        rgba(161, 66, 244, 0.2) 0
+      );
+    }
+
     .gauge-inner {
       width: 78px;
       height: 78px;
@@ -842,8 +856,51 @@
     }
 
     /* ============================================================
-       QUICK ACTIONS (Card 3)
+       QUICK ACTIONS BAR (Horizontal Full-Width Bar)
        ============================================================ */
+    .quick-actions-bar {
+      padding: 0.95rem 1.4rem;
+      margin: 0.35rem 0 0.35rem;
+    }
+
+    .quick-actions-bar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .quick-actions-bar-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: var(--fs-header);
+      font-weight: var(--fw-semibold);
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+
+    .quick-actions-bar-title svg {
+      width: 20px;
+      height: 20px;
+      color: var(--google-blue);
+      flex-shrink: 0;
+    }
+
+    .quick-actions-bar-buttons {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+    }
+
+    .quick-actions-bar-buttons .btn {
+      padding: 0.5rem 0.95rem;
+      font-size: 0.84rem;
+      white-space: nowrap;
+    }
+
     .actions-list {
       display: flex;
       flex-direction: column;
@@ -1433,6 +1490,20 @@
       .mesh-connector { display: none; }
 
       .speed-gauges { gap: 1rem; }
+
+      .quick-actions-bar-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .quick-actions-bar-buttons {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+      .quick-actions-bar-buttons .btn {
+        width: 100%;
+        justify-content: center;
+      }
     }
 
     @media (max-width: 480px) {
@@ -1573,6 +1644,22 @@
           <span class="chip chip-blue" style="font-size:0.7rem;font-weight:600;padding:0.15rem 0.5rem">LibreSpeed</span>
         </div>
 
+        <!-- Current Server Dropdown -->
+        <div class="speed-server-row" style="margin-bottom:0.85rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.3rem">
+            <label for="speedServerSelect" style="font-size:0.72rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em">Server</label>
+            <span id="speedServerStatus" class="chip chip-teal" style="font-size:0.68rem;padding:0.1rem 0.45rem">Local</span>
+          </div>
+          <select id="speedServerSelect" class="select-custom" style="width:100%;font-size:0.8rem;padding:0.35rem 0.6rem" onchange="onSpeedServerChange()">
+            <option value="local">Local Gateway (Nest Dashboard)</option>
+            <option value="us-chi">Chicago, USA (LibreSpeed)</option>
+            <option value="us-den">Denver, USA (LibreSpeed)</option>
+            <option value="us-lax">Los Angeles, USA (LibreSpeed)</option>
+            <option value="us-las">Las Vegas, USA (LibreSpeed)</option>
+            <option value="eu-ams">Amsterdam, EU (LibreSpeed)</option>
+          </select>
+        </div>
+
         <!-- Download & Upload Speed Gauges -->
         <div class="speed-gauges">
           <div>
@@ -1621,32 +1708,113 @@
         <div class="speed-progress-wrap" id="speedProgressWrap" style="display:none">
           <div class="speed-progress-bar" id="speedProgressBar"></div>
         </div>
-        <div class="speed-meta" id="speedMeta">No speed test data</div>
-      </div>
+        <div class="speed-meta" id="speedMeta">Ready for LibreSpeed test</div>
 
-      <!-- ──────────────── QUICK ACTIONS ──────────────── -->
-      <div class="card" id="actionsCard">
-        <div class="card-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          Quick Actions
-        </div>
-        <div class="actions-list">
+        <!-- Action Button -->
+        <div style="margin-top:0.75rem">
           <button class="btn btn-primary" id="runSpeedBtn" onclick="toggleSpeedTest()" style="width:100%;justify-content:center">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             <span id="runSpeedBtnText">Run Speed Test</span>
           </button>
+        </div>
+      </div>
+
+      <!-- ──────────────── ROUTER WAN SPEED TEST ──────────────── -->
+      <div class="card" id="wanSpeedCard">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span style="display:inline-flex;align-items:center;gap:0.45rem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            Router WAN Speed
+          </span>
+          <span class="chip chip-purple" style="font-size:0.7rem;font-weight:600;padding:0.15rem 0.5rem">Nest Wifi Pro</span>
+        </div>
+
+        <div style="font-size:0.76rem;color:var(--text-secondary);margin-bottom:0.85rem;display:flex;align-items:center;justify-content:space-between">
+          <span>ISP WAN Uplink</span>
+          <span class="chip chip-green" style="font-size:0.68rem;padding:0.1rem 0.45rem">Direct Gateway</span>
+        </div>
+
+        <!-- WAN Gauges -->
+        <div class="speed-gauges">
+          <div>
+            <div class="gauge">
+              <div class="gauge-circle" id="wanDlGauge" style="--pct:0">
+                <div class="gauge-inner">
+                  <span class="gauge-value" id="wanDlSpeed">—</span>
+                  <span class="gauge-unit">Mbps</span>
+                </div>
+              </div>
+            </div>
+            <div class="gauge-label">WAN Down</div>
+          </div>
+          <div>
+            <div class="gauge">
+              <div class="gauge-circle" id="wanUlGauge" style="--pct:0">
+                <div class="gauge-inner">
+                  <span class="gauge-value" id="wanUlSpeed">—</span>
+                  <span class="gauge-unit">Mbps</span>
+                </div>
+              </div>
+            </div>
+            <div class="gauge-label">WAN Up</div>
+          </div>
+        </div>
+
+        <!-- WAN Latency Telemetry -->
+        <div class="speed-telemetry-row">
+          <div class="telemetry-item" style="grid-column: span 2; display: flex; justify-content: space-between; align-items: center;">
+            <span class="telemetry-label" style="display:flex;align-items:center;gap:0.35rem">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              WAN Latency
+            </span>
+            <span class="telemetry-value"><strong id="wanLatencyVal">—</strong> <small>ms</small></span>
+          </div>
+        </div>
+
+        <!-- Progress Track & State -->
+        <div class="speed-progress-wrap" id="wanProgressWrap" style="display:none">
+          <div class="speed-progress-bar" id="wanProgressBar"></div>
+        </div>
+        <div class="speed-meta" id="wanSpeedMeta">No WAN test data</div>
+
+        <!-- Action Button -->
+        <div style="margin-top:0.75rem">
           <button class="btn btn-secondary" id="routerWanSpeedBtn" onclick="runRouterWanSpeedTest()" title="Trigger WAN speed test from Nest Wifi Pro via Google Cloud" style="width:100%;justify-content:center">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-            <span id="routerWanSpeedBtnText">Router WAN Speed</span>
-          </button>
-          <button class="btn btn-danger" onclick="confirmAction('Restart Network', 'Are you sure you want to restart the entire network? All devices will temporarily lose connectivity.', () => restartNetwork())">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-            Restart Network
-          </button>
-          <button class="btn btn-secondary" onclick="fetchData()" style="width:100%;justify-content:center;display:inline-flex;align-items:center;gap:0.45rem">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-            Refresh Dashboard
+            <span id="routerWanSpeedBtnText">Test Router WAN</span>
           </button>
+        </div>
+      </div>
+
+      <!-- ──────────────── QUICK ACTIONS (HORIZONTAL LONG BAR) ──────────────── -->
+      <div class="card span-full quick-actions-bar" id="actionsCard">
+        <div class="quick-actions-bar-inner">
+          <div class="quick-actions-bar-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>Quick Actions</span>
+          </div>
+          <div class="quick-actions-bar-buttons">
+            <button class="btn btn-primary" id="barRunSpeedBtn" onclick="toggleSpeedTest()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span id="barRunSpeedBtnText">Run Speed Test</span>
+            </button>
+            <button class="btn btn-secondary" id="barRouterWanSpeedBtn" onclick="runRouterWanSpeedTest()" title="Trigger WAN speed test from Nest Wifi Pro via Google Cloud">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <span id="barRouterWanSpeedBtnText">Router WAN Speed</span>
+            </button>
+            <button class="btn btn-danger" onclick="confirmAction('Restart Network', 'Are you sure you want to restart the entire network? All devices will temporarily lose connectivity.', () => restartNetwork())">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Restart Network
+            </button>
+            <button class="btn btn-secondary" onclick="toggleGuestNetwork()" id="guestToggleBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span id="barGuestStatusText">Toggle Guest Network</span>
+            </button>
+            <button class="btn btn-secondary" onclick="fetchData()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              Refresh Dashboard
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1984,10 +2152,10 @@
           applyFilterAndSort();
         }
 
-        // --- Speed Test (nested under "speed_test" key) ---
+        // --- Router WAN Speed Test (from Google Home API) ---
         if (speedtestRaw) {
           const st = speedtestRaw.speed_test || speedtestRaw;
-          updateSpeedTest(st);
+          updateWanSpeedTest(st);
         }
 
         // --- Eureka Info (may have an "ok" or "info" wrapper) ---
@@ -2070,6 +2238,39 @@
         metaEl.textContent = tested
           ? `Last tested: ${formatTime(tested)}`
           : 'Ready for LibreSpeed test';
+      }
+    }
+
+    /* ==========================================================
+       UPDATE: ROUTER WAN SPEED TEST
+       ========================================================== */
+    function updateWanSpeedTest(data) {
+      if (!data) return;
+      const dl = data.download_mbps ?? data.download_speed ?? data.download ?? 0;
+      const ul = data.upload_mbps ?? data.upload_speed ?? data.upload ?? 0;
+      const latency = data.latency_ms ?? data.latency ?? data.ping_ms ?? data.ping;
+
+      const dlEl = document.getElementById('wanDlSpeed');
+      const ulEl = document.getElementById('wanUlSpeed');
+      const latencyEl = document.getElementById('wanLatencyVal');
+
+      if (dlEl) dlEl.textContent = dl ? Number(dl).toFixed(1) : '—';
+      if (ulEl) ulEl.textContent = ul ? Number(ul).toFixed(1) : '—';
+      if (latencyEl && latency != null) latencyEl.textContent = Number(latency).toFixed(0);
+
+      const dlPct = Math.min(100, (dl / 1000) * 100);
+      const ulPct = Math.min(100, (ul / 1000) * 100);
+      const dlGauge = document.getElementById('wanDlGauge');
+      const ulGauge = document.getElementById('wanUlGauge');
+      if (dlGauge) dlGauge.style.setProperty('--pct', dlPct);
+      if (ulGauge) ulGauge.style.setProperty('--pct', ulPct);
+
+      const tested = data.timestamp || data.last_tested || data.tested_at;
+      const metaEl = document.getElementById('wanSpeedMeta');
+      if (metaEl) {
+        metaEl.textContent = tested
+          ? `Last tested: ${formatTime(tested)}`
+          : 'Ready for WAN test';
       }
     }
 
@@ -2480,8 +2681,87 @@
     }
 
     /* ==========================================================
-       LIBRESPEED TEST ENGINE (XHR with onprogress & upload.onprogress)
+       LIBRESPEED TEST ENGINE (Multi-Server XHR Architecture)
        ========================================================== */
+    const SPEEDTEST_SERVERS = {
+      local: {
+        name: "Local Gateway (Nest Dashboard)",
+        server: "",
+        dlURL: "/api/speedtest/garbage",
+        ulURL: "/api/speedtest/empty",
+        pingURL: "/api/speedtest/empty"
+      },
+      "us-chi": {
+        name: "Chicago, USA (LibreSpeed)",
+        server: "https://chispeed.sharktech.net",
+        dlURL: "backend/garbage.php",
+        ulURL: "backend/empty.php",
+        pingURL: "backend/empty.php"
+      },
+      "us-den": {
+        name: "Denver, USA (LibreSpeed)",
+        server: "https://denspeed.sharktech.net",
+        dlURL: "backend/garbage.php",
+        ulURL: "backend/empty.php",
+        pingURL: "backend/empty.php"
+      },
+      "us-lax": {
+        name: "Los Angeles, USA (LibreSpeed)",
+        server: "https://laxspeed.sharktech.net",
+        dlURL: "backend/garbage.php",
+        ulURL: "backend/empty.php",
+        pingURL: "backend/empty.php"
+      },
+      "us-las": {
+        name: "Las Vegas, USA (LibreSpeed)",
+        server: "https://lasspeed.sharktech.net",
+        dlURL: "backend/garbage.php",
+        ulURL: "backend/empty.php",
+        pingURL: "backend/empty.php"
+      },
+      "eu-ams": {
+        name: "Amsterdam, EU (LibreSpeed)",
+        server: "https://amsspeed.sharktech.net",
+        dlURL: "backend/garbage.php",
+        ulURL: "backend/empty.php",
+        pingURL: "backend/empty.php"
+      }
+    };
+
+    function onSpeedServerChange() {
+      const sel = document.getElementById('speedServerSelect');
+      const statusEl = document.getElementById('speedServerStatus');
+      if (!sel) return;
+      const srv = SPEEDTEST_SERVERS[sel.value] || SPEEDTEST_SERVERS.local;
+      if (statusEl) {
+        statusEl.textContent = srv.server ? 'Public CORS' : 'Local';
+        statusEl.className = srv.server ? 'chip chip-purple' : 'chip chip-teal';
+      }
+    }
+
+    async function initSpeedTestServers() {
+      try {
+        const res = await fetch(`${API_BASE}/api/speedtest/servers`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.ok && Array.isArray(data.servers)) {
+          const sel = document.getElementById('speedServerSelect');
+          if (!sel) return;
+          const curVal = sel.value;
+          sel.innerHTML = '';
+          data.servers.forEach(s => {
+            SPEEDTEST_SERVERS[s.id] = s;
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.name;
+            if (s.id === curVal) opt.selected = true;
+            sel.appendChild(opt);
+          });
+          onSpeedServerChange();
+        }
+      } catch (_) {}
+    }
+
     let speedTestRunning = false;
     let activeXhrs = [];
 
@@ -2508,10 +2788,22 @@
     }
 
     function resetSpeedBtns() {
-      const btn = document.getElementById('runSpeedBtn');
-      const text = document.getElementById('runSpeedBtnText');
-      if (btn) btn.disabled = false;
-      if (text) text.textContent = 'Run Speed Test';
+      const btn1 = document.getElementById('runSpeedBtn');
+      const txt1 = document.getElementById('runSpeedBtnText');
+      const btn2 = document.getElementById('barRunSpeedBtn');
+      const txt2 = document.getElementById('barRunSpeedBtnText');
+
+      if (btn1) {
+        btn1.disabled = false;
+        btn1.className = 'btn btn-primary';
+      }
+      if (txt1) txt1.textContent = 'Run Speed Test';
+
+      if (btn2) {
+        btn2.disabled = false;
+        btn2.className = 'btn btn-primary';
+      }
+      if (txt2) txt2.textContent = 'Run Speed Test';
     }
 
     function setSpeedProgress(pct, statusText) {
@@ -2523,14 +2815,29 @@
       if (meta && statusText) meta.textContent = statusText;
     }
 
+    function setWanProgress(pct, statusText) {
+      const wrap = document.getElementById('wanProgressWrap');
+      const bar = document.getElementById('wanProgressBar');
+      const meta = document.getElementById('wanSpeedMeta');
+      if (wrap) wrap.style.display = 'block';
+      if (bar) bar.style.width = Math.min(100, Math.max(0, pct)) + '%';
+      if (meta && statusText) meta.textContent = statusText;
+    }
+
     async function runLibreSpeedTest() {
       if (speedTestRunning) return;
       speedTestRunning = true;
       activeXhrs = [];
 
-      const btn = document.getElementById('runSpeedBtn');
-      const text = document.getElementById('runSpeedBtnText');
-      if (text) text.textContent = 'Abort Test';
+      const btn1 = document.getElementById('runSpeedBtn');
+      const txt1 = document.getElementById('runSpeedBtnText');
+      const btn2 = document.getElementById('barRunSpeedBtn');
+      const txt2 = document.getElementById('barRunSpeedBtnText');
+
+      if (btn1) btn1.className = 'btn btn-danger';
+      if (txt1) txt1.textContent = 'Abort Test';
+      if (btn2) btn2.className = 'btn btn-danger';
+      if (txt2) txt2.textContent = 'Abort Test';
 
       const dlEl = document.getElementById('dlSpeed');
       const ulEl = document.getElementById('ulSpeed');
@@ -2546,9 +2853,17 @@
       if (dlGauge) dlGauge.style.setProperty('--pct', 0);
       if (ulGauge) ulGauge.style.setProperty('--pct', 0);
 
+      // Resolve test server endpoints
+      const selVal = document.getElementById('speedServerSelect')?.value || 'local';
+      const srv = SPEEDTEST_SERVERS[selVal] || SPEEDTEST_SERVERS.local;
+      const srvBase = srv.server ? srv.server.replace(/\/+$/, '') : API_BASE;
+      const pingEndpoint = `${srvBase}/${srv.pingURL.replace(/^\/+/, '')}`;
+      const dlEndpoint = `${srvBase}/${srv.dlURL.replace(/^\/+/, '')}`;
+      const ulEndpoint = `${srvBase}/${srv.ulURL.replace(/^\/+/, '')}`;
+
       try {
         /* ================= 1. PING & JITTER ================= */
-        setSpeedProgress(10, 'Measuring ping & jitter…');
+        setSpeedProgress(10, `Pinging ${srv.name}…`);
         const rtts = [];
         const pingRounds = 6;
 
@@ -2558,8 +2873,8 @@
             const xhr = new XMLHttpRequest();
             activeXhrs.push(xhr);
             const t0 = performance.now();
-            xhr.open('GET', `${API_BASE}/api/speedtest/empty?r=${Math.random()}`, true);
-            xhr.timeout = 3000;
+            xhr.open('GET', `${pingEndpoint}?r=${Math.random()}`, true);
+            xhr.timeout = 3500;
             xhr.onload = () => {
               const t1 = performance.now();
               resolve(Math.max(1, t1 - t0));
@@ -2617,9 +2932,10 @@
 
         const dlInterval = setInterval(updateDlDisplay, 100);
 
-        // Spawn 2 parallel streaming downloads that auto-repeat if they finish before time is up
+        // Spawn 2 parallel streaming downloads that auto-repeat
         const numStreams = 2;
         const dlPromises = [];
+        const sep = dlEndpoint.includes('?') ? '&' : '?';
 
         for (let s = 0; s < numStreams; s++) {
           dlPromises.push(new Promise((resolve) => {
@@ -2630,7 +2946,7 @@
               }
               const xhr = new XMLHttpRequest();
               activeXhrs.push(xhr);
-              xhr.open('GET', `${API_BASE}/api/speedtest/garbage?ckSize=8&r=${Math.random()}`, true);
+              xhr.open('GET', `${dlEndpoint}${sep}ckSize=8&r=${Math.random()}`, true);
               xhr.responseType = 'arraybuffer';
               let lastLoaded = 0;
 
@@ -2646,7 +2962,7 @@
               };
               xhr.onload = () => {
                 if ((performance.now() - dlStartTime) < dlDurationMs && speedTestRunning) {
-                  startStream(); // loop for full test duration
+                  startStream();
                 } else {
                   resolve();
                 }
@@ -2709,7 +3025,7 @@
               }
               const xhr = new XMLHttpRequest();
               activeXhrs.push(xhr);
-              xhr.open('POST', `${API_BASE}/api/speedtest/empty?r=${Math.random()}`, true);
+              xhr.open('POST', `${ulEndpoint}?r=${Math.random()}`, true);
               let lastLoaded = 0;
 
               xhr.upload.onprogress = (e) => {
@@ -2753,10 +3069,11 @@
 
         /* ================= 4. FINISH ================= */
         setSpeedProgress(100, 'Speed test complete!');
-        showToast(`Speed Test: ${finalDlMbps.toFixed(1)} Mbps Down / ${finalUlMbps.toFixed(1)} Mbps Up`, 'success', 5000);
+        showToast(`Speed Test (${srv.name}): ${finalDlMbps.toFixed(1)} Mbps Down / ${finalUlMbps.toFixed(1)} Mbps Up`, 'success', 5000);
 
         showResultModal('LibreSpeed Test Results', `
-          <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:1rem;margin:1.25rem 0;text-align:center">
+          <div style="font-size:0.85rem;color:var(--text-secondary);text-align:center;margin-bottom:0.75rem">Server: <strong>${escapeHTML(srv.name)}</strong></div>
+          <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:1rem;margin:1rem 0;text-align:center">
             <div style="background:var(--bg-primary);padding:1rem;border-radius:var(--radius-sm);border:1px solid var(--border)">
               <div style="font-size:1.75rem;font-weight:700;color:var(--google-blue)">${finalDlMbps.toFixed(1)}</div>
               <div style="font-size:0.8rem;color:var(--text-secondary);font-weight:600">Download Mbps</div>
@@ -2792,34 +3109,43 @@
       }
     }
 
-    /* Router WAN speed test fallback via Google Home API */
+    /* Router WAN speed test via Nest Wifi Pro Google Cloud API */
     async function runRouterWanSpeedTest() {
-      const btn = document.getElementById('routerWanSpeedBtn');
-      const textEl = document.getElementById('routerWanSpeedBtnText');
-      const origText = textEl ? textEl.textContent : 'Router WAN Speed';
-      if (btn) btn.disabled = true;
-      if (textEl) textEl.textContent = 'Testing WAN…';
-      setSpeedProgress(40, 'Querying Google Home WAN speed test…');
+      const btn1 = document.getElementById('routerWanSpeedBtn');
+      const text1 = document.getElementById('routerWanSpeedBtnText');
+      const btn2 = document.getElementById('barRouterWanSpeedBtn');
+      const text2 = document.getElementById('barRouterWanSpeedBtnText');
+
+      const origText1 = text1 ? text1.textContent : 'Test Router WAN';
+      const origText2 = text2 ? text2.textContent : 'Router WAN Speed';
+
+      if (btn1) btn1.disabled = true;
+      if (btn2) btn2.disabled = true;
+      if (text1) text1.textContent = 'Testing WAN…';
+      if (text2) text2.textContent = 'Testing WAN…';
+      setWanProgress(35, 'Querying Nest Wifi Pro WAN test…');
 
       try {
         const res = await fetch(`${API_BASE}/api/speedtest/run`, { method: 'POST' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const st = data.speed_test || data;
-        updateSpeedTest(st);
-        setSpeedProgress(100, 'Router WAN test complete');
-        showToast('Router WAN speed updated from Google Home!', 'success');
+        updateWanSpeedTest(st);
+        setWanProgress(100, 'Router WAN test complete');
+        showToast('Router WAN speed updated from Nest Wifi Pro!', 'success');
         setTimeout(() => {
-          const wrap = document.getElementById('speedProgressWrap');
+          const wrap = document.getElementById('wanProgressWrap');
           if (wrap) wrap.style.display = 'none';
         }, 3000);
       } catch (err) {
         showToast('Router WAN test failed: ' + err.message, 'error');
-        const meta = document.getElementById('speedMeta');
+        const meta = document.getElementById('wanSpeedMeta');
         if (meta) meta.textContent = 'Router test failed';
       } finally {
-        if (btn) btn.disabled = false;
-        if (textEl) textEl.textContent = origText;
+        if (btn1) btn1.disabled = false;
+        if (btn2) btn2.disabled = false;
+        if (text1) text1.textContent = origText1;
+        if (text2) text2.textContent = origText2;
       }
     }
 
@@ -2909,6 +3235,7 @@
        ========================================================== */
     document.addEventListener('DOMContentLoaded', () => {
       initTheme();
+      initSpeedTestServers();
       fetchData();
       startAutoRefresh();
     });

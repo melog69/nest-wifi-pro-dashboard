@@ -204,6 +204,62 @@ def api_speedtest_garbage():
     return resp
 
 
+@app.route("/api/speedtest/servers", methods=["GET"])
+def api_speedtest_servers():
+    """Returns available LibreSpeed speed test servers."""
+    servers = [
+        {
+            "id": "local",
+            "name": "Local Gateway (Nest Dashboard)",
+            "server": "",
+            "dlURL": "/api/speedtest/garbage",
+            "ulURL": "/api/speedtest/empty",
+            "pingURL": "/api/speedtest/empty",
+        },
+        {
+            "id": "us-chi",
+            "name": "Chicago, USA (Sharktech)",
+            "server": "https://chispeed.sharktech.net",
+            "dlURL": "backend/garbage.php",
+            "ulURL": "backend/empty.php",
+            "pingURL": "backend/empty.php",
+        },
+        {
+            "id": "us-den",
+            "name": "Denver, USA (Sharktech)",
+            "server": "https://denspeed.sharktech.net",
+            "dlURL": "backend/garbage.php",
+            "ulURL": "backend/empty.php",
+            "pingURL": "backend/empty.php",
+        },
+        {
+            "id": "us-lax",
+            "name": "Los Angeles, USA (Sharktech)",
+            "server": "https://laxspeed.sharktech.net",
+            "dlURL": "backend/garbage.php",
+            "ulURL": "backend/empty.php",
+            "pingURL": "backend/empty.php",
+        },
+        {
+            "id": "us-las",
+            "name": "Las Vegas, USA (Sharktech)",
+            "server": "https://lasspeed.sharktech.net",
+            "dlURL": "backend/garbage.php",
+            "ulURL": "backend/empty.php",
+            "pingURL": "backend/empty.php",
+        },
+        {
+            "id": "eu-ams",
+            "name": "Amsterdam, EU (Sharktech)",
+            "server": "https://amsspeed.sharktech.net",
+            "dlURL": "backend/garbage.php",
+            "ulURL": "backend/empty.php",
+            "pingURL": "backend/empty.php",
+        },
+    ]
+    return jsonify({"ok": True, "servers": servers})
+
+
 @app.route("/api/devices/<device_id>/pause", methods=["POST"])
 def api_pause_device(device_id: str):
     """Pause or unpause a device.  Body: {"paused": true/false}"""
