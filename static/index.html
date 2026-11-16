@@ -188,6 +188,16 @@
     [data-theme="dark"] .search-box input { color: var(--text-primary); }
     [data-theme="dark"] .search-box:focus-within { background: var(--bg-card); border-color: var(--google-blue); box-shadow: 0 0 0 3px rgba(138, 180, 248, 0.2); }
     [data-theme="dark"] .select-custom { background: var(--bg-card); border-color: var(--border); color: var(--text-primary); }
+    [data-theme="dark"] .table-wrap { background: var(--bg-card); border-color: var(--border); }
+    [data-theme="dark"] thead th { background: var(--bg-subtle); color: var(--text-secondary); border-bottom-color: var(--border); }
+    [data-theme="dark"] tbody tr { background: var(--bg-card); border-bottom-color: var(--border-subtle); }
+    [data-theme="dark"] tbody tr:hover { background: var(--bg-hover); }
+    [data-theme="dark"] tbody td { color: var(--text-primary); }
+    [data-theme="dark"] .device-name-text { color: var(--text-primary); }
+    [data-theme="dark"] .device-icon-wrap { background: var(--bg-subtle); border-color: var(--border); }
+    [data-theme="dark"] tr.paused { background: rgba(234, 67, 53, 0.12) !important; }
+    [data-theme="dark"] tr.prioritized { background: rgba(242, 153, 0, 0.12) !important; }
+    [data-theme="dark"] .signal-mini-bar { background: var(--bg-subtle); }
     [data-theme="dark"] .data-table th { background: var(--bg-subtle); color: var(--text-secondary); border-bottom-color: var(--border); }
     [data-theme="dark"] .data-table td { border-bottom-color: var(--border-subtle); color: var(--text-primary); }
     [data-theme="dark"] .data-table tr:hover td { background: var(--bg-hover); }
@@ -1612,17 +1622,6 @@
           <div class="speed-progress-bar" id="speedProgressBar"></div>
         </div>
         <div class="speed-meta" id="speedMeta">No speed test data</div>
-
-        <!-- Speed Actions -->
-        <div style="display:flex;gap:0.5rem;align-items:center">
-          <button class="btn btn-primary" style="flex:1;justify-content:center" id="runSpeedBtn" onclick="toggleSpeedTest()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            <span id="runSpeedBtnText">Run Speed Test</span>
-          </button>
-          <button class="btn btn-secondary btn-sm" id="routerWanSpeedBtn" onclick="runRouterWanSpeedTest()" title="Query WAN speed test from Nest Wifi Pro via Google Cloud" style="font-size:0.8rem;padding:0.6rem 0.75rem">
-            Router WAN
-          </button>
-        </div>
       </div>
 
       <!-- ──────────────── QUICK ACTIONS ──────────────── -->
@@ -1632,6 +1631,14 @@
           Quick Actions
         </div>
         <div class="actions-list">
+          <button class="btn btn-primary" id="runSpeedBtn" onclick="toggleSpeedTest()" style="width:100%;justify-content:center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span id="runSpeedBtnText">Run Speed Test</span>
+          </button>
+          <button class="btn btn-secondary" id="routerWanSpeedBtn" onclick="runRouterWanSpeedTest()" title="Trigger WAN speed test from Nest Wifi Pro via Google Cloud" style="width:100%;justify-content:center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <span id="routerWanSpeedBtnText">Router WAN Speed</span>
+          </button>
           <button class="btn btn-danger" onclick="confirmAction('Restart Network', 'Are you sure you want to restart the entire network? All devices will temporarily lose connectivity.', () => restartNetwork())">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
             Restart Network
@@ -2473,10 +2480,10 @@
     }
 
     /* ==========================================================
-       LIBRESPEED TEST ENGINE
+       LIBRESPEED TEST ENGINE (XHR with onprogress & upload.onprogress)
        ========================================================== */
     let speedTestRunning = false;
-    let speedTestAbortCtrl = null;
+    let activeXhrs = [];
 
     function toggleSpeedTest() {
       if (speedTestRunning) {
@@ -2487,12 +2494,12 @@
     }
 
     function abortSpeedTest() {
-      if (speedTestAbortCtrl) {
-        speedTestAbortCtrl.abort();
-        speedTestAbortCtrl = null;
-      }
+      activeXhrs.forEach(x => {
+        try { x.abort(); } catch (_) {}
+      });
+      activeXhrs = [];
       speedTestRunning = false;
-      resetSpeedBtn();
+      resetSpeedBtns();
       const wrap = document.getElementById('speedProgressWrap');
       if (wrap) wrap.style.display = 'none';
       const meta = document.getElementById('speedMeta');
@@ -2500,7 +2507,7 @@
       showToast('Speed test aborted', 'info');
     }
 
-    function resetSpeedBtn() {
+    function resetSpeedBtns() {
       const btn = document.getElementById('runSpeedBtn');
       const text = document.getElementById('runSpeedBtnText');
       if (btn) btn.disabled = false;
@@ -2519,14 +2526,12 @@
     async function runLibreSpeedTest() {
       if (speedTestRunning) return;
       speedTestRunning = true;
-      speedTestAbortCtrl = new AbortController();
-      const signal = speedTestAbortCtrl.signal;
+      activeXhrs = [];
 
       const btn = document.getElementById('runSpeedBtn');
       const text = document.getElementById('runSpeedBtnText');
       if (text) text.textContent = 'Abort Test';
 
-      // Reset displayed values
       const dlEl = document.getElementById('dlSpeed');
       const ulEl = document.getElementById('ulSpeed');
       const pingEl = document.getElementById('pingVal');
@@ -2543,37 +2548,46 @@
 
       try {
         /* ================= 1. PING & JITTER ================= */
-        setSpeedProgress(8, 'Testing latency & jitter…');
+        setSpeedProgress(10, 'Measuring ping & jitter…');
         const rtts = [];
-        const pingRounds = 8;
+        const pingRounds = 6;
 
         for (let i = 0; i < pingRounds; i++) {
-          if (signal.aborted) throw new Error('aborted');
-          const t0 = performance.now();
-          await fetch(`${API_BASE}/api/speedtest/empty?r=${Math.random()}`, {
-            signal: signal,
-            cache: 'no-store'
+          if (!speedTestRunning) return;
+          const rtt = await new Promise((resolve) => {
+            const xhr = new XMLHttpRequest();
+            activeXhrs.push(xhr);
+            const t0 = performance.now();
+            xhr.open('GET', `${API_BASE}/api/speedtest/empty?r=${Math.random()}`, true);
+            xhr.timeout = 3000;
+            xhr.onload = () => {
+              const t1 = performance.now();
+              resolve(Math.max(1, t1 - t0));
+            };
+            xhr.onerror = () => resolve(null);
+            xhr.ontimeout = () => resolve(null);
+            xhr.send();
           });
-          const t1 = performance.now();
-          const rtt = Math.max(1, t1 - t0);
-          rtts.push(rtt);
 
-          const curMin = Math.min(...rtts);
-          let curJitter = 0;
-          if (rtts.length > 1) {
-            let diffSum = 0;
-            for (let j = 1; j < rtts.length; j++) {
-              diffSum += Math.abs(rtts[j] - rtts[j - 1]);
+          if (rtt !== null) {
+            rtts.push(rtt);
+            const curMin = Math.min(...rtts);
+            let curJitter = 0;
+            if (rtts.length > 1) {
+              let diff = 0;
+              for (let j = 1; j < rtts.length; j++) {
+                diff += Math.abs(rtts[j] - rtts[j - 1]);
+              }
+              curJitter = diff / (rtts.length - 1);
             }
-            curJitter = diffSum / (rtts.length - 1);
+            if (pingEl) pingEl.textContent = curMin.toFixed(0);
+            if (jitterEl) jitterEl.textContent = curJitter.toFixed(1);
           }
-          if (pingEl) pingEl.textContent = curMin.toFixed(0);
-          if (jitterEl) jitterEl.textContent = curJitter.toFixed(1);
-          setSpeedProgress(8 + (i / pingRounds) * 15, `Testing ping (${i + 1}/${pingRounds})…`);
+          setSpeedProgress(10 + (i / pingRounds) * 15, `Pinging (${i + 1}/${pingRounds})…`);
           await new Promise(r => setTimeout(r, 60));
         }
 
-        const finalPing = Math.min(...rtts);
+        const finalPing = rtts.length ? Math.min(...rtts) : 0;
         let finalJitter = 0;
         if (rtts.length > 1) {
           let sum = 0;
@@ -2581,116 +2595,159 @@
           finalJitter = sum / (rtts.length - 1);
         }
 
-        /* ================= 2. DOWNLOAD TEST ================= */
-        setSpeedProgress(25, 'Testing download throughput…');
-        const dlDurationMs = 5500;
+        /* ================= 2. DOWNLOAD TEST (XHR onprogress) ================= */
+        if (!speedTestRunning) return;
+        setSpeedProgress(28, 'Testing download throughput…');
+        const dlDurationMs = 5000;
         const dlStartTime = performance.now();
         let totalDlBytes = 0;
         let finalDlMbps = 0;
 
-        const dlInterval = setInterval(() => {
+        const updateDlDisplay = () => {
           const elapsedSec = (performance.now() - dlStartTime) / 1000;
-          if (elapsedSec > 0.2) {
-            const currentMbps = (totalDlBytes * 8) / (elapsedSec * 1000000);
-            finalDlMbps = currentMbps;
-            if (dlEl) dlEl.textContent = currentMbps.toFixed(1);
-            if (dlGauge) dlGauge.style.setProperty('--pct', Math.min(100, (currentMbps / 1000) * 100));
-            const progress = 25 + Math.min(38, (elapsedSec / (dlDurationMs / 1000)) * 38);
-            setSpeedProgress(progress, `Testing download: ${currentMbps.toFixed(1)} Mbps…`);
+          if (elapsedSec > 0.15) {
+            const mbps = (totalDlBytes * 8) / (elapsedSec * 1000000);
+            finalDlMbps = mbps;
+            if (dlEl) dlEl.textContent = mbps.toFixed(1);
+            if (dlGauge) dlGauge.style.setProperty('--pct', Math.min(100, (mbps / 1000) * 100));
+            const progress = 28 + Math.min(36, (elapsedSec / (dlDurationMs / 1000)) * 36);
+            setSpeedProgress(progress, `Download: ${mbps.toFixed(1)} Mbps…`);
           }
-        }, 100);
+        };
 
-        const dlWorkers = [];
-        const concurrency = 3;
-        for (let c = 0; c < concurrency; c++) {
-          dlWorkers.push((async () => {
-            while ((performance.now() - dlStartTime) < dlDurationMs && !signal.aborted) {
-              try {
-                const res = await fetch(`${API_BASE}/api/speedtest/garbage?ckSize=8&r=${Math.random()}`, {
-                  signal: signal,
-                  cache: 'no-store'
-                });
-                const reader = res.body.getReader();
-                while (true) {
-                  if ((performance.now() - dlStartTime) >= dlDurationMs || signal.aborted) {
-                    await reader.cancel();
-                    break;
-                  }
-                  const { done, value } = await reader.read();
-                  if (done) break;
-                  if (value) totalDlBytes += value.byteLength;
-                }
-              } catch (e) {
-                if (signal.aborted) return;
-                break;
+        const dlInterval = setInterval(updateDlDisplay, 100);
+
+        // Spawn 2 parallel streaming downloads that auto-repeat if they finish before time is up
+        const numStreams = 2;
+        const dlPromises = [];
+
+        for (let s = 0; s < numStreams; s++) {
+          dlPromises.push(new Promise((resolve) => {
+            function startStream() {
+              if (!speedTestRunning || (performance.now() - dlStartTime) >= dlDurationMs) {
+                resolve();
+                return;
               }
+              const xhr = new XMLHttpRequest();
+              activeXhrs.push(xhr);
+              xhr.open('GET', `${API_BASE}/api/speedtest/garbage?ckSize=8&r=${Math.random()}`, true);
+              xhr.responseType = 'arraybuffer';
+              let lastLoaded = 0;
+
+              xhr.onprogress = (e) => {
+                if (e.loaded > lastLoaded) {
+                  totalDlBytes += (e.loaded - lastLoaded);
+                  lastLoaded = e.loaded;
+                }
+                if ((performance.now() - dlStartTime) >= dlDurationMs) {
+                  try { xhr.abort(); } catch (_) {}
+                  resolve();
+                }
+              };
+              xhr.onload = () => {
+                if ((performance.now() - dlStartTime) < dlDurationMs && speedTestRunning) {
+                  startStream(); // loop for full test duration
+                } else {
+                  resolve();
+                }
+              };
+              xhr.onerror = () => resolve();
+              xhr.onabort = () => resolve();
+              xhr.send();
             }
-          })());
+            startStream();
+          }));
         }
 
         await Promise.race([
-          Promise.all(dlWorkers),
+          Promise.all(dlPromises),
           new Promise(r => setTimeout(r, dlDurationMs + 200))
         ]);
+
         clearInterval(dlInterval);
-        const finalDlSec = Math.max(0.5, (performance.now() - dlStartTime) / 1000);
-        finalDlMbps = (totalDlBytes * 8) / (finalDlSec * 1000000);
+        activeXhrs.forEach(x => { try { x.abort(); } catch (_) {} });
+        activeXhrs = [];
+
+        const dlElapsed = Math.max(0.5, (performance.now() - dlStartTime) / 1000);
+        finalDlMbps = (totalDlBytes * 8) / (dlElapsed * 1000000);
         if (dlEl) dlEl.textContent = finalDlMbps.toFixed(1);
         if (dlGauge) dlGauge.style.setProperty('--pct', Math.min(100, (finalDlMbps / 1000) * 100));
 
-        /* ================= 3. UPLOAD TEST ================= */
-        if (signal.aborted) throw new Error('aborted');
+        /* ================= 3. UPLOAD TEST (XHR upload.onprogress) ================= */
+        if (!speedTestRunning) return;
         setSpeedProgress(65, 'Testing upload throughput…');
         const ulDurationMs = 5000;
         const ulStartTime = performance.now();
         let totalUlBytes = 0;
         let finalUlMbps = 0;
 
-        // Generate 512KB payload chunk for upload
-        const payloadChunk = new Uint8Array(524288);
-        for (let i = 0; i < payloadChunk.length; i += 1024) {
-          payloadChunk[i] = (i % 255);
-        }
-
-        const ulInterval = setInterval(() => {
+        const updateUlDisplay = () => {
           const elapsedSec = (performance.now() - ulStartTime) / 1000;
-          if (elapsedSec > 0.2) {
-            const currentMbps = (totalUlBytes * 8) / (elapsedSec * 1000000);
-            finalUlMbps = currentMbps;
-            if (ulEl) ulEl.textContent = currentMbps.toFixed(1);
-            if (ulGauge) ulGauge.style.setProperty('--pct', Math.min(100, (currentMbps / 1000) * 100));
-            const progress = 65 + Math.min(33, (elapsedSec / (ulDurationMs / 1000)) * 33);
-            setSpeedProgress(progress, `Testing upload: ${currentMbps.toFixed(1)} Mbps…`);
+          if (elapsedSec > 0.15) {
+            const mbps = (totalUlBytes * 8) / (elapsedSec * 1000000);
+            finalUlMbps = mbps;
+            if (ulEl) ulEl.textContent = mbps.toFixed(1);
+            if (ulGauge) ulGauge.style.setProperty('--pct', Math.min(100, (mbps / 1000) * 100));
+            const progress = 65 + Math.min(34, (elapsedSec / (ulDurationMs / 1000)) * 34);
+            setSpeedProgress(progress, `Upload: ${mbps.toFixed(1)} Mbps…`);
           }
-        }, 100);
+        };
 
-        const ulWorkers = [];
-        for (let c = 0; c < 2; c++) {
-          ulWorkers.push((async () => {
-            while ((performance.now() - ulStartTime) < ulDurationMs && !signal.aborted) {
-              try {
-                await fetch(`${API_BASE}/api/speedtest/empty?r=${Math.random()}`, {
-                  method: 'POST',
-                  body: payloadChunk,
-                  signal: signal,
-                  cache: 'no-store'
-                });
-                totalUlBytes += payloadChunk.byteLength;
-              } catch (e) {
-                if (signal.aborted) return;
-                break;
+        const ulInterval = setInterval(updateUlDisplay, 100);
+
+        // Pre-create 1MB upload blob
+        const uploadData = new Uint8Array(1048576);
+        const uploadBlob = new Blob([uploadData], { type: 'application/octet-stream' });
+
+        const ulPromises = [];
+        for (let s = 0; s < 2; s++) {
+          ulPromises.push(new Promise((resolve) => {
+            function startUploadStream() {
+              if (!speedTestRunning || (performance.now() - ulStartTime) >= ulDurationMs) {
+                resolve();
+                return;
               }
+              const xhr = new XMLHttpRequest();
+              activeXhrs.push(xhr);
+              xhr.open('POST', `${API_BASE}/api/speedtest/empty?r=${Math.random()}`, true);
+              let lastLoaded = 0;
+
+              xhr.upload.onprogress = (e) => {
+                if (e.loaded > lastLoaded) {
+                  totalUlBytes += (e.loaded - lastLoaded);
+                  lastLoaded = e.loaded;
+                }
+                if ((performance.now() - ulStartTime) >= ulDurationMs) {
+                  try { xhr.abort(); } catch (_) {}
+                  resolve();
+                }
+              };
+              xhr.onload = () => {
+                if ((performance.now() - ulStartTime) < ulDurationMs && speedTestRunning) {
+                  startUploadStream();
+                } else {
+                  resolve();
+                }
+              };
+              xhr.onerror = () => resolve();
+              xhr.onabort = () => resolve();
+              xhr.send(uploadBlob);
             }
-          })());
+            startUploadStream();
+          }));
         }
 
         await Promise.race([
-          Promise.all(ulWorkers),
+          Promise.all(ulPromises),
           new Promise(r => setTimeout(r, ulDurationMs + 200))
         ]);
+
         clearInterval(ulInterval);
-        const finalUlSec = Math.max(0.5, (performance.now() - ulStartTime) / 1000);
-        finalUlMbps = (totalUlBytes * 8) / (finalUlSec * 1000000);
+        activeXhrs.forEach(x => { try { x.abort(); } catch (_) {} });
+        activeXhrs = [];
+
+        const ulElapsed = Math.max(0.5, (performance.now() - ulStartTime) / 1000);
+        finalUlMbps = (totalUlBytes * 8) / (ulElapsed * 1000000);
         if (ulEl) ulEl.textContent = finalUlMbps.toFixed(1);
         if (ulGauge) ulGauge.style.setProperty('--pct', Math.min(100, (finalUlMbps / 1000) * 100));
 
@@ -2725,26 +2782,23 @@
         }, 3500);
 
       } catch (err) {
-        if (err.message !== 'aborted') {
-          showToast('Speed test error: ' + err.message, 'error');
-          const meta = document.getElementById('speedMeta');
-          if (meta) meta.textContent = 'Test encountered an error';
-        }
+        showToast('Speed test error: ' + err.message, 'error');
+        const meta = document.getElementById('speedMeta');
+        if (meta) meta.textContent = 'Test encountered an error';
       } finally {
         speedTestRunning = false;
-        speedTestAbortCtrl = null;
-        resetSpeedBtn();
+        activeXhrs = [];
+        resetSpeedBtns();
       }
     }
 
     /* Router WAN speed test fallback via Google Home API */
     async function runRouterWanSpeedTest() {
       const btn = document.getElementById('routerWanSpeedBtn');
-      const origText = btn ? btn.innerHTML : 'Router WAN';
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span> Testing…';
-      }
+      const textEl = document.getElementById('routerWanSpeedBtnText');
+      const origText = textEl ? textEl.textContent : 'Router WAN Speed';
+      if (btn) btn.disabled = true;
+      if (textEl) textEl.textContent = 'Testing WAN…';
       setSpeedProgress(40, 'Querying Google Home WAN speed test…');
 
       try {
@@ -2764,10 +2818,8 @@
         const meta = document.getElementById('speedMeta');
         if (meta) meta.textContent = 'Router test failed';
       } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = origText;
-        }
+        if (btn) btn.disabled = false;
+        if (textEl) textEl.textContent = origText;
       }
     }
 

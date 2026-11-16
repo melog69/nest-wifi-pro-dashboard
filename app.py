@@ -57,6 +57,7 @@ CORS(app)
 # event loop inside an asyncio.Task to avoid "Timeout context manager should
 # be used inside a task" errors in Python 3.11.
 import threading
+import atexit
 
 _loop = asyncio.new_event_loop()
 
@@ -68,6 +69,7 @@ def _start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
 
 _bg_thread = threading.Thread(target=_start_background_loop, args=(_loop,), daemon=True)
 _bg_thread.start()
+atexit.register(lambda: _loop.call_soon_threadsafe(_loop.stop))
 
 
 def _run_async(coro, timeout: float = 45.0):
@@ -169,19 +171,14 @@ def api_speed_test_run():
 # ============================================================================
 # LibreSpeed-compatible speed test endpoints (Ping, Jitter, Download, Upload)
 # ============================================================================
-_GARBAGE_CHUNK = os.urandom(1048576)  # 1MB pre-allocated random buffer
+_GARBAGE_CHUNK = b"\x00" * 1048576  # 1MB pre-allocated zero-byte buffer
 
 
 @app.route("/api/speedtest/empty", methods=["GET", "POST", "HEAD"])
 def api_speedtest_empty():
     """LibreSpeed empty endpoint used for Ping, Jitter, and Upload measurements."""
     if request.method == "POST":
-        chunk_size = 65536
-        stream = request.stream
-        while True:
-            chunk = stream.read(chunk_size)
-            if not chunk:
-                break
+        _ = request.get_data(cache=False)
     resp = make_response("", 200)
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     resp.headers["Pragma"] = "no-cache"
@@ -194,6 +191,7 @@ def api_speedtest_garbage():
     """LibreSpeed garbage streaming endpoint for measuring Download bandwidth."""
     ck_size = request.args.get("ckSize", default=4, type=int)
     ck_size = max(1, min(ck_size, 32))  # Clamp between 1MB and 32MB per stream
+    total_bytes = ck_size * len(_GARBAGE_CHUNK)
 
     def stream_garbage():
         for _ in range(ck_size):
@@ -202,7 +200,7 @@ def api_speedtest_garbage():
     resp = Response(stream_garbage(), mimetype="application/octet-stream")
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     resp.headers["Pragma"] = "no-cache"
-    resp.headers["Content-Disposition"] = "attachment; filename=speedtest.dat"
+    resp.headers["Content-Length"] = str(total_bytes)
     return resp
 
 
