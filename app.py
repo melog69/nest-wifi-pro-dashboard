@@ -174,7 +174,7 @@ def api_speed_test_run():
 _GARBAGE_CHUNK = b"\x00" * 1048576  # 1MB pre-allocated zero-byte buffer
 
 
-@app.route("/api/speedtest/empty", methods=["GET", "POST", "HEAD"])
+@app.route("/api/speedtest/empty", methods=["GET", "POST", "HEAD", "OPTIONS"])
 def api_speedtest_empty():
     """LibreSpeed empty endpoint used for Ping, Jitter, and Upload measurements."""
     if request.method == "POST":
@@ -183,6 +183,9 @@ def api_speedtest_empty():
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     resp.headers["Pragma"] = "no-cache"
     resp.headers["Connection"] = "keep-alive"
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    resp.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, HEAD"
+    resp.headers["Access-Control-Allow-Headers"] = "*"
     return resp
 
 

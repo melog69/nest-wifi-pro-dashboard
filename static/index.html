@@ -2764,6 +2764,7 @@
 
     let speedTestRunning = false;
     let activeXhrs = [];
+    let activeUlAbortCtrl = null;
 
     function toggleSpeedTest() {
       if (speedTestRunning) {
@@ -2778,6 +2779,10 @@
         try { x.abort(); } catch (_) {}
       });
       activeXhrs = [];
+      if (activeUlAbortCtrl) {
+        try { activeUlAbortCtrl.abort(); } catch (_) {}
+        activeUlAbortCtrl = null;
+      }
       speedTestRunning = false;
       resetSpeedBtns();
       const wrap = document.getElementById('speedProgressWrap');
@@ -2989,7 +2994,7 @@
         if (dlEl) dlEl.textContent = finalDlMbps.toFixed(1);
         if (dlGauge) dlGauge.style.setProperty('--pct', Math.min(100, (finalDlMbps / 1000) * 100));
 
-        /* ================= 3. UPLOAD TEST (XHR upload.onprogress) ================= */
+        /* ================= 3. UPLOAD TEST (CORS-Safe Parallel Chunk Pipeline) ================= */
         if (!speedTestRunning) return;
         setSpeedProgress(65, 'Testing upload throughput…');
         const ulDurationMs = 5000;
@@ -3011,56 +3016,48 @@
 
         const ulInterval = setInterval(updateUlDisplay, 100);
 
-        // Pre-create 1MB upload blob
-        const uploadData = new Uint8Array(1048576);
-        const uploadBlob = new Blob([uploadData], { type: 'application/octet-stream' });
+        // Pre-create untyped 512KB upload blob (no Content-Type header to avoid CORS preflight rejection)
+        const chunkSize = 524288; // 512 KB
+        const uploadData = new Uint8Array(chunkSize);
+        for (let i = 0; i < chunkSize; i += 64) uploadData[i] = (i * 37) & 255;
+        const uploadBlob = new Blob([uploadData]); // Simple CORS request
 
-        const ulPromises = [];
-        for (let s = 0; s < 2; s++) {
-          ulPromises.push(new Promise((resolve) => {
-            function startUploadStream() {
-              if (!speedTestRunning || (performance.now() - ulStartTime) >= ulDurationMs) {
-                resolve();
-                return;
+        const ulSep = ulEndpoint.includes('?') ? '&' : '?';
+        const numUlWorkers = 3;
+        const ulAbortCtrl = new AbortController();
+        activeUlAbortCtrl = ulAbortCtrl;
+
+        const ulWorkers = [];
+        for (let w = 0; w < numUlWorkers; w++) {
+          ulWorkers.push((async () => {
+            while (speedTestRunning && (performance.now() - ulStartTime) < ulDurationMs) {
+              try {
+                const res = await fetch(`${ulEndpoint}${ulSep}r=${Math.random()}`, {
+                  method: 'POST',
+                  body: uploadBlob,
+                  mode: 'cors',
+                  cache: 'no-store',
+                  signal: ulAbortCtrl.signal
+                });
+                if (res.ok) {
+                  totalUlBytes += chunkSize;
+                }
+              } catch (err) {
+                if (err.name === 'AbortError' || !speedTestRunning) break;
+                await new Promise(r => setTimeout(r, 40));
               }
-              const xhr = new XMLHttpRequest();
-              activeXhrs.push(xhr);
-              xhr.open('POST', `${ulEndpoint}?r=${Math.random()}`, true);
-              let lastLoaded = 0;
-
-              xhr.upload.onprogress = (e) => {
-                if (e.loaded > lastLoaded) {
-                  totalUlBytes += (e.loaded - lastLoaded);
-                  lastLoaded = e.loaded;
-                }
-                if ((performance.now() - ulStartTime) >= ulDurationMs) {
-                  try { xhr.abort(); } catch (_) {}
-                  resolve();
-                }
-              };
-              xhr.onload = () => {
-                if ((performance.now() - ulStartTime) < ulDurationMs && speedTestRunning) {
-                  startUploadStream();
-                } else {
-                  resolve();
-                }
-              };
-              xhr.onerror = () => resolve();
-              xhr.onabort = () => resolve();
-              xhr.send(uploadBlob);
             }
-            startUploadStream();
-          }));
+          })());
         }
 
         await Promise.race([
-          Promise.all(ulPromises),
+          Promise.all(ulWorkers),
           new Promise(r => setTimeout(r, ulDurationMs + 200))
         ]);
 
         clearInterval(ulInterval);
-        activeXhrs.forEach(x => { try { x.abort(); } catch (_) {} });
-        activeXhrs = [];
+        try { ulAbortCtrl.abort(); } catch (_) {}
+        activeUlAbortCtrl = null;
 
         const ulElapsed = Math.max(0.5, (performance.now() - ulStartTime) / 1000);
         finalUlMbps = (totalUlBytes * 8) / (ulElapsed * 1000000);
